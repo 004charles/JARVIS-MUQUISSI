@@ -142,12 +142,24 @@ def _unread_references(reply: str, steps: list[dict[str, Any]]) -> list[str]:
     return list(dict.fromkeys(unread))
 
 
+VOICE_APPROVAL_MAX_CHARS = 160
+
+
+def needs_screen_approval(approval: PendingApproval) -> bool:
+    """Too long to say in full, or requested after reading untrusted text: a spoken "sim" is not
+    enough — the full command must be read and approved on screen (ApprovalBanner)."""
+    return approval.tainted or len(approval.target.strip()) > VOICE_APPROVAL_MAX_CHARS
+
+
 def describe_pending_action(approval: PendingApproval) -> str:
     """Natural spoken confirmation question for a destructive action."""
+    if needs_screen_approval(approval):
+        return (
+            "Isto é sensível e não o posso confirmar só pela voz: o comando completo está no ecrã. "
+            "Lê-o lá e aprova ou recusa no ecrã."
+        )
     # Say exactly what will run (never a shortened version that could hide the real target).
     target = approval.target.strip()
-    if len(target) > 240:
-        target = target[:240] + "… (comando completo no ecrã)"
     if approval.tool_name == "run_command":
         return f"Antes de avançar: isto é sensível, vou executar «{target}». Confirmas?"
     return f"Isto mexe em «{target}». Queres mesmo que avance?"
@@ -257,13 +269,16 @@ async def run_agent_turn(
         outcome = await registry.invoke(
             db=db, tool_name=parsed.tool, params=parsed.args, force_confirmation=tainted
         )
+        tainted_before = tainted  # what had been read before this action was requested
         tainted = tainted or _output_is_untrusted(parsed.tool, parsed.args)
         logger.info("Agente passo %d: %s → %s", step + 1, parsed.tool, outcome.status)
         result.steps.append({"tool": parsed.tool, "args": parsed.args, "status": outcome.status})
 
         result.tainted = tainted
         if outcome.status == "awaiting_confirmation" and outcome.approval is not None:
-            outcome.approval.tainted = tainted  # survives the "sim": the next step stays gated
+            # survives the "sim": the next steps stay gated (the approved tool's own output is
+            # judged after it runs, in approve_pending)
+            outcome.approval.tainted = tainted_before
             result.pending_approval = outcome.approval
             result.reply = describe_pending_action(outcome.approval)
             return result

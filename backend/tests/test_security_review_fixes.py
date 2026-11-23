@@ -75,3 +75,46 @@ def test_tainted_turn_is_not_learned(monkeypatch):
     assert calls == []
     ab.ambient_brain._remember_turn(FakeDB(), 1, "olá", "resposta")
     assert calls == [("olá", "resposta")]
+
+
+def test_long_or_tainted_commands_need_screen_approval():
+    from app.ai.agent_loop import describe_pending_action, needs_screen_approval
+
+    short = PendingApproval(id="a", tool_name="run_command", target="rm -rf ~/lixo", params={}, description="")
+    long_cmd = PendingApproval(id="b", tool_name="run_command", target="echo ok " * 30 + "; rm -rf ~",
+                               params={}, description="")
+    tainted = PendingApproval(id="c", tool_name="run_command", target="rm -rf ~/lixo", params={}, description="",
+                              tainted=True)
+    assert not needs_screen_approval(short) and "rm -rf ~/lixo" in describe_pending_action(short)
+    assert needs_screen_approval(long_cmd) and "ecrã" in describe_pending_action(long_cmd)
+    assert needs_screen_approval(tainted)
+
+
+def test_voice_yes_does_not_approve_screen_only_actions(monkeypatch):
+    import asyncio
+
+    from app.tools.registry import tool_registry
+    from app.voice import ambient_brain as ab
+
+    approval = PendingApproval(id="z", tool_name="run_command", target="rm -rf ~/x", params={}, description="",
+                               tainted=True)
+    monkeypatch.setattr(tool_registry.policy, "list_pending_approvals", lambda: [approval])
+    approved = []
+
+    async def fake_approve(db, approval_id):
+        approved.append(approval_id)
+
+    monkeypatch.setattr(tool_registry, "approve_pending", fake_approve)
+    brain = ab.ambient_brain
+    brain._pending_approval_id = "z"
+    monkeypatch.setattr(brain, "_ensure_conversation", lambda db, text, cid: None)
+
+    class FakeDB:
+        def add(self, _):
+            pass
+
+        def commit(self):
+            pass
+
+    reply = asyncio.run(brain._resolve_pending_confirmation(FakeDB(), "sim, avança", None))
+    assert approved == [] and "ecrã" in reply[0]

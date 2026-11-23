@@ -441,6 +441,16 @@ class AmbientConversationBrain:
         conv_id = self._ensure_conversation(db, text, conversation_id)
 
         if _CONFIRM_YES_RE.search(norm) and not _CONFIRM_NO_RE.search(norm):
+            from app.ai.agent_loop import needs_screen_approval
+
+            pending = next((a for a in tool_registry.policy.list_pending_approvals() if a.id == approval_id), None)
+            if pending is not None and needs_screen_approval(pending):
+                # stays pending in the on-screen banner, where the whole command is visible
+                reply = "Essa só a podes aprovar no ecrã, onde vês o comando inteiro."
+                db.add(Message(conversation_id=conv_id, role="user", content=text))
+                db.commit()
+                self._remember_turn(db, conv_id, text, reply, tainted=True)
+                return reply, "local", "screen-approval", conv_id
             db.add(Message(conversation_id=conv_id, role="user", content=text))
             db.commit()
             outcome = await tool_registry.approve_pending(db, approval_id)

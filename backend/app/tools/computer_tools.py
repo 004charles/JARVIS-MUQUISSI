@@ -91,7 +91,7 @@ class RunCommandTool(JarvisTool):
         self._policy = policy
 
     def describe_target(self, params: Dict[str, Any]) -> str:
-        return str(params.get("command", "")).strip()[:200] or self.name
+        return str(params.get("command", "")).strip() or self.name  # full command: the approval banner must show all of it
 
     async def execute(self, params: Dict[str, Any]) -> ToolResult:
         command = str(params.get("command", "")).strip()
