@@ -7,7 +7,12 @@ import time
 import unicodedata
 from dataclasses import dataclass
 
-_WAKE_VARIANTS = ("muquissi", "mukuissi", "muquici", "muquice", "mukissi", "moquissi", "muquisi")
+_WAKE_VARIANTS = (
+    "arcanjo", "arcanju", "arcangel", "arcanjos", "arcanjo miguel",
+    # nomes anteriores (continuam a funcionar)
+    "stella", "stela", "estela", "estella", "stelle", "esthela",
+    # nome antigo (continua a funcionar)
+    "muquissi", "mukuissi", "muquici", "muquice", "mukissi", "moquissi", "muquisi")
 _LEADING_GREETINGS = r"(?:(?:oi|ola|ei|hey|ok|fala|alô|alo)\s+)?"
 _WAKE_RE = re.compile(
     rf"^\s*{_LEADING_GREETINGS}(?:{'|'.join(_WAKE_VARIANTS)})[\s,.:;!?-]*(.*)$",
@@ -29,6 +34,12 @@ class WakeEvaluation:
     wake_only: bool
     cleaned_text: str
     window_active: bool
+
+
+def mentions_wake_word(text: str) -> bool:
+    """True if the name (any common mis-transcription) is said anywhere in the text."""
+    normalized = _strip_accents(text)
+    return any(re.search(rf"\b{v}\b", normalized, re.IGNORECASE) for v in _WAKE_VARIANTS)
 
 
 class WakeWordGate:

@@ -97,7 +97,7 @@ export function ConversationsPanel({
         <div className="max-h-64 flex-1 space-y-2 overflow-y-auto pr-1 text-xs">
           {messages.length === 0 ? (
             <p className="text-slate-400">
-              Envia uma mensagem na barra inferior para iniciar a conversa com o Muquissi.
+              Envia uma mensagem na barra inferior para iniciar a conversa com o Arcanjo.
             </p>
           ) : (
             messages.map((m) => (
@@ -110,7 +110,7 @@ export function ConversationsPanel({
                 }`}
               >
                 <span className="mr-2 font-mono text-[10px] uppercase text-cyan-400">
-                  {m.role === "user" ? "Carlos" : "Muquissi"}:
+                  {m.role === "user" ? "Carlos" : "Arcanjo"}:
                 </span>
                 {m.content}
               </div>

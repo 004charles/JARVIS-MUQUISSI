@@ -29,7 +29,7 @@ router = APIRouter(prefix="/voice", tags=["voice"])
 SETTING_VOICE_NAME = "voice.name"
 MAX_AUDIO_BYTES = 15 * 1024 * 1024
 ALL_VOICES = AVAILABLE_EDGE_VOICES + AVAILABLE_GEMINI_VOICES
-DEFAULT_UNLIMITED_VOICE = "Muquissi-Grave"
+DEFAULT_UNLIMITED_VOICE = get_settings().voice_tts_voice
 _gemini_quota_until: float = 0.0
 
 
@@ -80,7 +80,7 @@ class NativeConfigUpdate(BaseModel):
 
 
 class ListeningModeUpdate(BaseModel):
-    """Switch Muquissi between proactive opinion participation, always_reply, or wake_word."""
+    """Switch Arcanjo between proactive opinion participation, always_reply, or wake_word."""
 
     mode: ListeningMode
 
@@ -172,7 +172,7 @@ async def update_native_voice_config(payload: NativeConfigUpdate) -> dict[str, o
 
 @router.put("/mode")
 async def update_listening_mode(payload: ListeningModeUpdate) -> dict[str, object]:
-    """Switch Muquissi's listening behavior (proactive, always_reply, wake_word)."""
+    """Switch Arcanjo's listening behavior (proactive, always_reply, wake_word)."""
     ambient_brain.set_mode(payload.mode)
     state = native_voice_service.status()
     await event_bus.emit("voice.native.status", state)

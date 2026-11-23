@@ -37,6 +37,18 @@ class StreamChunk:
     fallback_used: bool = False
 
 
+def _provider_stream(
+    provider: AIProvider,
+    messages: Sequence[ChatMessage],
+    model: str,
+    tools: List[dict] | None,
+) -> AsyncIterator[str]:
+    """Use native function calling when the provider supports it; otherwise text protocol."""
+    if tools and getattr(provider, "supports_native_tools", False):
+        return provider.stream(messages, model=model, tools=tools)  # type: ignore[call-arg]
+    return provider.stream(messages, model=model)
+
+
 class AIManager:
     """Coordinates provider selection, persistence of AI config, and chat streaming."""
 
@@ -61,11 +73,26 @@ class AIManager:
                 base_url="https://api.groq.com/openai/v1",
                 api_key=self.settings.groq_api_key,
                 default_model=self.settings.groq_model,
+                fallback_models=[
+                    m.strip() for m in self.settings.groq_fallback_models.split(",") if m.strip()
+                ],
                 suggested_models=[
                     "openai/gpt-oss-20b",
                     "openai/gpt-oss-120b",
                     "qwen/qwen3.8-27b",
                 ],
+                timeout=self.settings.ai_timeout,
+            ),
+            # Google Gemini through its OpenAI-compatible endpoint (free tier, own quota)
+            "gemini": OpenAICompatProvider(
+                name="gemini",
+                base_url="https://generativelanguage.googleapis.com/v1beta/openai",
+                api_key=self.settings.gemini_api_key,
+                default_model=self.settings.gemini_chat_model,
+                fallback_models=[
+                    m.strip() for m in self.settings.gemini_fallback_models.split(",") if m.strip()
+                ],
+                suggested_models=["gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-2.5-flash"],
                 timeout=self.settings.ai_timeout,
             ),
             "anthropic": AnthropicProvider(
@@ -101,6 +128,8 @@ class AIManager:
         )
         if fallback and fallback not in self.providers:
             fallback = ""
+        if not fallback and primary != "gemini" and self.settings.gemini_api_key.strip():
+            fallback = "gemini"  # free second brain when the primary runs out of quota
 
         models = {
             name: self._get_setting(db, f"{SETTING_MODEL_PREFIX}{name}", provider.default_model)
@@ -185,9 +214,7 @@ class AIManager:
                 (r.content for r in reversed(rows) if r.role == "user"),
                 "",
             )
-            relevant = memory_service.search_relevant_memories(
-                db, query=latest_user_query, limit=6
-            )
+            relevant = memory_service.build_context_memories(db, query=latest_user_query)
             memories_block = "\n".join(
                 f"- [{m.category}] {m.content}" for m in relevant
             )
@@ -202,9 +229,13 @@ class AIManager:
                 )
             )
 
-        for row in rows:
+        recent_cut = len(rows) - 2
+        for i, row in enumerate(rows):
             if row.role in ("user", "assistant"):
-                result.append(ChatMessage(role=row.role, content=row.content))
+                content = row.content
+                if i < recent_cut and len(content) > 700:
+                    content = content[:700] + " […]"  # older turns: the gist is enough
+                result.append(ChatMessage(role=row.role, content=content))
         return result
 
     async def generate_chat(
@@ -213,6 +244,7 @@ class AIManager:
         messages: Sequence[ChatMessage],
         provider_override: str | None = None,
         model_override: str | None = None,
+        tools: List[dict] | None = None,
     ) -> tuple[str, str, str, bool]:
         """Generate a complete response with optional fallback provider."""
         chunks: List[str] = []
@@ -225,6 +257,7 @@ class AIManager:
             messages=messages,
             provider_override=provider_override,
             model_override=model_override,
+            tools=tools,
         ):
             chunks.append(item.delta)
             used_provider = item.provider
@@ -239,6 +272,7 @@ class AIManager:
         messages: Sequence[ChatMessage],
         provider_override: str | None = None,
         model_override: str | None = None,
+        tools: List[dict] | None = None,
     ) -> AsyncIterator[StreamChunk]:
         """Stream deltas from primary provider, falling back cleanly if unreachable."""
         config = self.get_active_config(db)
@@ -255,7 +289,7 @@ class AIManager:
 
         emitted_any = False
         try:
-            async for delta in primary_provider.stream(messages, model=primary_model):
+            async for delta in _provider_stream(primary_provider, messages, primary_model, tools):
                 emitted_any = True
                 yield StreamChunk(
                     delta=delta,
@@ -281,7 +315,7 @@ class AIManager:
                 active_models.get(fallback_name, fallback_provider.default_model)
             )
             try:
-                async for delta in fallback_provider.stream(messages, model=fallback_model):
+                async for delta in _provider_stream(fallback_provider, messages, fallback_model, tools):
                     yield StreamChunk(
                         delta=delta,
                         provider=fallback_name,

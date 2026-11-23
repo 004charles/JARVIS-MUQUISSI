@@ -109,7 +109,7 @@ export function AgentsPanel({ latestAgentRun, onSpeakSummary }: AgentsPanelProps
             Roteamento Automático
           </div>
           <p className="mt-1 text-[11px] text-slate-400">
-            O Muquissi escolhe automaticamente o agente ideal para a missão.
+            O Arcanjo escolhe automaticamente o agente ideal para a missão.
           </p>
         </button>
 

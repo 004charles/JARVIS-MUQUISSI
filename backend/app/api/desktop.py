@@ -19,7 +19,7 @@ class TogglePayload(BaseModel):
 class DesktopNotifyRequest(BaseModel):
     """Send a native Ubuntu notification."""
 
-    title: str = Field(default="Muquissi", min_length=1, max_length=120)
+    title: str = Field(default="Arcanjo", min_length=1, max_length=120)
     message: str = Field(min_length=1, max_length=300)
     urgency: UrgencyLevel = "normal"
 
@@ -45,7 +45,7 @@ async def update_desktop_notifications(payload: TogglePayload) -> dict[str, obje
 
 @router.post("/install-launcher")
 async def install_desktop_launcher() -> dict[str, object]:
-    """Install the Muquissi `.desktop` shortcut in Ubuntu applications menu."""
+    """Install the Arcanjo `.desktop` shortcut in Ubuntu applications menu."""
     return desktop_service.install_desktop_entry()
 
 

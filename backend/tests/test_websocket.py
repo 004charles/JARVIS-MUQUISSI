@@ -130,4 +130,4 @@ def test_websocket_reports_clear_error_when_provider_unavailable(
         assert "assistant.error" in types
         assert "chat.error" in types
         chat_err = next(e for e in events if e["type"] == "chat.error")
-        assert "Ollama" in chat_err["payload"]["message"]
+        assert "cérebro do Arcanjo" in chat_err["payload"]["message"]  # friendly, no raw provider error

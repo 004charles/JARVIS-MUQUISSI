@@ -1,10 +1,11 @@
 import { useEffect, useId, useRef, useState } from "react";
-import type { AssistantState, FaceMood } from "../types/api";
+import type { AssistantState, FaceMood, MusicState } from "../types/api";
 
 interface MuquissiFaceProps {
   mood: FaceMood;
   state: AssistantState;
   speechEnergy?: number;
+  music?: MusicState;
 }
 
 interface FaceRigState {
@@ -49,7 +50,7 @@ function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
 }
 
-export function MuquissiFace({ mood, state, speechEnergy = 0 }: MuquissiFaceProps) {
+export function MuquissiFace({ mood, state, speechEnergy = 0, music }: MuquissiFaceProps) {
   const uid = useId().replace(/:/g, "");
   const [rig, setRig] = useState<FaceRigState>(INITIAL_RIG);
 
@@ -59,6 +60,8 @@ export function MuquissiFace({ mood, state, speechEnergy = 0 }: MuquissiFaceProp
   moodRef.current = mood;
   stateRef.current = state;
   energyRef.current = speechEnergy;
+  const musicRef = useRef<MusicState | undefined>(music);
+  musicRef.current = music;
 
   const pointerGazeRef = useRef<{ x: number; y: number; activeUntil: number }>({
     x: 0,
@@ -243,6 +246,28 @@ export function MuquissiFace({ mood, state, speechEnergy = 0 }: MuquissiFaceProp
         targetTilt = Math.sin(sec * 2.4) * 1.9;
       }
 
+      // Dance! Head bobs on every beat, sways side to side every two beats, blissful eyes,
+      // big smile and brows popping on the beat. Amplitude follows the music's energy.
+      const mu = musicRef.current;
+      if (mu?.playing && mu.bpm > 0 && st !== "speaking" && st !== "processing") {
+        const beats = sec * (mu.bpm / 60);
+        const onBeat = Math.pow(Math.abs(Math.cos(Math.PI * beats)), 6); // sharp pulse at each beat
+        const amp = 0.7 + Math.min(1, mu.energy) * 0.7;
+        targetHeadY = (Math.abs(Math.sin(Math.PI * beats)) * -5.5 + 2.5) * amp;
+        targetTilt = Math.sin(Math.PI * beats) * 7 * amp;
+        targetGazeX = Math.sin(Math.PI * beats) * 2.2;
+        targetGazeY = -0.8;
+        targetLidTop = 0.32;
+        targetLidBottom = 0.34;
+        targetBrowLiftL = -2.5 - onBeat * 4 * amp;
+        targetBrowLiftR = -2.5 - onBeat * 4 * amp;
+        targetSmile = 16;
+        targetWidth = 24;
+        targetOpen = 0.08 + onBeat * 0.16; // humming along
+        targetCheek = 0.45;
+        targetPupil = 5.4;
+      }
+
       if (isBlinking) {
         targetLidTop = 1.0;
       }
@@ -263,8 +288,9 @@ export function MuquissiFace({ mood, state, speechEnergy = 0 }: MuquissiFaceProp
       c.cheekOpacity = lerp(c.cheekOpacity, targetCheek, 0.1);
       c.fatigueAlpha = lerp(c.fatigueAlpha, targetFatigue, 0.1);
       c.tearAlpha = lerp(c.tearAlpha, targetTear, 0.1);
-      c.headTiltDeg = lerp(c.headTiltDeg, targetTilt, 0.08);
-      c.headY = lerp(c.headY, targetHeadY, 0.08);
+      const dancing = Boolean(musicRef.current?.playing);
+      c.headTiltDeg = lerp(c.headTiltDeg, targetTilt, dancing ? 0.3 : 0.08);
+      c.headY = lerp(c.headY, targetHeadY, dancing ? 0.35 : 0.08);
 
       setRig({ ...c });
       raf = window.requestAnimationFrame(tick);
@@ -445,7 +471,7 @@ export function MuquissiFace({ mood, state, speechEnergy = 0 }: MuquissiFaceProp
     <svg
       viewBox="0 0 200 200"
       className="h-full w-full select-none"
-      aria-label={`Rosto do Muquissi (${mood})`}
+      aria-label={`Rosto do Arcanjo (${mood})`}
     >
       <defs>
         <radialGradient id={`${uid}-cloudBg`} cx="38%" cy="28%" r="74%">

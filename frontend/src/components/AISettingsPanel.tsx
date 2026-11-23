@@ -22,7 +22,7 @@ export function AISettingsPanel({
   const [data, setData] = useState<AIProvidersResponse | null>(null);
   const [voiceData, setVoiceData] = useState<VoiceStatusResponse | null>(null);
   const [desktopData, setDesktopData] = useState<DesktopStatusResponse | null>(null);
-  const [selectedVoice, setSelectedVoice] = useState("Muquissi-Grave");
+  const [selectedVoice, setSelectedVoice] = useState("Muquissi-Mulher");
   const [defaultProvider, setDefaultProvider] = useState("ollama");
   const [fallbackProvider, setFallbackProvider] = useState("");
   const [modelInput, setModelInput] = useState("");
@@ -288,7 +288,7 @@ export function AISettingsPanel({
                       }}
                       className="rounded-lg border border-cyan-500/30 bg-slate-950/70 px-2.5 py-1 font-mono text-[10px] text-cyan-200 hover:border-cyan-400"
                     >
-                      {voiceData.require_wake_word ? 'Wake Word: "Muquissi"' : "Modo Sempre Aberto"}
+                      {voiceData.require_wake_word ? 'Wake Word: "Arcanjo"' : "Modo Sempre Aberto"}
                     </button>
                     <button
                       type="button"
@@ -368,7 +368,7 @@ export function AISettingsPanel({
                   onClick={async () => {
                     const updated = await apiClient.installDesktopLauncher();
                     setDesktopData(updated);
-                    setStatusMessage("Atalho do Muquissi instalado no menu do Ubuntu.");
+                    setStatusMessage("Atalho do Arcanjo instalado no menu do Ubuntu.");
                   }}
                   className="rounded-lg border border-cyan-500/30 bg-slate-900/70 px-2.5 py-1 font-mono text-[11px] text-cyan-200 hover:border-cyan-400"
                 >

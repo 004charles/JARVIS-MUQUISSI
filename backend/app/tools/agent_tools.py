@@ -1,4 +1,4 @@
-"""Level 1 delegation tool allowing Muquissi voice/chat to launch specialized Phase 9 agents."""
+"""Level 1 delegation tool allowing Arcanjo voice/chat to launch specialized Phase 9 agents."""
 
 from __future__ import annotations
 

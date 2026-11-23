@@ -39,6 +39,21 @@ class AIProviderError(Exception):
         self.recoverable = recoverable
 
 
+def friendly_ai_error(message: str) -> str:
+    """Turn raw provider errors into a short message a person can understand."""
+    low = message.lower()
+    if "413" in low or "429" in low or "503" in low or "high demand" in low or "overloaded" in low or "rate limit" in low or "rate_limit" in low or "quota" in low:
+        return (
+            "O Céu está muito procurado neste momento (limite do plano gratuito do cérebro de IA). "
+            "Tenta de novo daqui a um minuto."
+        )
+    if "timeout" in low or "network" in low or "rede" in low or "ligar" in low or "connect" in low:
+        return "Não consegui contactar o cérebro do Arcanjo. Verifica a ligação à internet e tenta de novo."
+    if "api key" in low or "chave" in low or "401" in low:
+        return "O cérebro do Arcanjo não está configurado (falta a chave da API)."
+    return "O Arcanjo não conseguiu responder agora. Tenta de novo daqui a pouco."
+
+
 class AIProvider(ABC):
     """Provider-independent interface for local and external LLMs."""
 

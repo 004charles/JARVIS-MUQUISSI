@@ -1,0 +1,968 @@
+[
+ {
+  "file": "001-the-creation-of-light.jpg",
+  "title": "The Creation of Light",
+  "plate": 1,
+  "source": "https://commons.wikimedia.org/wiki/File:001.The_Creation_of_Light.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "002-the-creation-of-eve.jpg",
+  "title": "The Creation of Eve",
+  "plate": 2,
+  "source": "https://commons.wikimedia.org/wiki/File:002.The_Creation_of_Eve.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "003-adam-and-eve-are-driven-out-of-eden.jpg",
+  "title": "Adam and Eve Are Driven out of Eden",
+  "plate": 3,
+  "source": "https://commons.wikimedia.org/wiki/File:003.Adam_and_Eve_Are_Driven_out_of_Eden.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "004-cain-and-abel-offer-their-sacrifices.jpg",
+  "title": "Cain and Abel Offer Their Sacrifices",
+  "plate": 4,
+  "source": "https://commons.wikimedia.org/wiki/File:004.Cain_and_Abel_Offer_Their_Sacrifices.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "005-cain-slays-abel.jpg",
+  "title": "Cain Slays Abel",
+  "plate": 5,
+  "source": "https://commons.wikimedia.org/wiki/File:005.Cain_Slays_Abel.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "006-the-world-is-destroyed-by-water.jpg",
+  "title": "The World Is Destroyed by Water",
+  "plate": 6,
+  "source": "https://commons.wikimedia.org/wiki/File:006.The_World_Is_Destroyed_by_Water.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "007-the-great-flood.jpg",
+  "title": "The Great Flood",
+  "plate": 7,
+  "source": "https://commons.wikimedia.org/wiki/File:007.The_Great_Flood.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "008-a-dove-is-sent-forth-from-the-ark.jpg",
+  "title": "A Dove Is Sent Forth from the Ark",
+  "plate": 8,
+  "source": "https://commons.wikimedia.org/wiki/File:008.A_Dove_Is_Sent_Forth_from_the_Ark.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "009-noah-curses-ham-and-canaan.jpg",
+  "title": "Noah Curses Ham and Canaan",
+  "plate": 9,
+  "source": "https://commons.wikimedia.org/wiki/File:009.Noah_Curses_Ham_and_Canaan.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "010-the-tower-of-babel.jpg",
+  "title": "The Tower of Babel",
+  "plate": 10,
+  "source": "https://commons.wikimedia.org/wiki/File:010.The_Tower_of_Babel.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "011-abraham-goes-to-the-land-of-canaan.jpg",
+  "title": "Abraham Goes to the Land of Canaan",
+  "plate": 11,
+  "source": "https://commons.wikimedia.org/wiki/File:011.Abraham_Goes_to_the_Land_of_Canaan.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "012-abraham-and-the-three-angels.jpg",
+  "title": "Abraham and the Three Angels",
+  "plate": 12,
+  "source": "https://commons.wikimedia.org/wiki/File:012.Abraham_and_the_Three_Angels.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "013-lot-flees-as-sodom-and-gomorrah-burn.jpg",
+  "title": "Lot Flees as Sodom and Gomorrah Burn",
+  "plate": 13,
+  "source": "https://commons.wikimedia.org/wiki/File:013.Lot_Flees_as_Sodom_and_Gomorrah_Burn.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "014-abraham-sends-hagar-and-ishmael-away.jpg",
+  "title": "Abraham Sends Hagar and Ishmael Away",
+  "plate": 14,
+  "source": "https://commons.wikimedia.org/wiki/File:014.Abraham_Sends_Hagar_and_Ishmael_Away.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "015-hagar-and-ishmael-in-the-wilderness.jpg",
+  "title": "Hagar and Ishmael in the Wilderness",
+  "plate": 15,
+  "source": "https://commons.wikimedia.org/wiki/File:015.Hagar_and_Ishmael_in_the_Wilderness.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "016-the-testing-of-abraham-s-faith.jpg",
+  "title": "The Testing of Abraham's Faith",
+  "plate": 16,
+  "source": "https://commons.wikimedia.org/wiki/File:016.The_Testing_of_Abraham%27s_Faith.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "017-the-burial-of-sarah.jpg",
+  "title": "The Burial of Sarah",
+  "plate": 17,
+  "source": "https://commons.wikimedia.org/wiki/File:017.The_Burial_of_Sarah.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "018-eliezer-and-rebekah-at-the-well.jpg",
+  "title": "Eliezer and Rebekah at the Well",
+  "plate": 18,
+  "source": "https://commons.wikimedia.org/wiki/File:018.Eliezer_and_Rebekah_at_the_Well.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "019-the-meeting-of-isaac-and-rebekah.jpg",
+  "title": "The Meeting of Isaac and Rebekah",
+  "plate": 19,
+  "source": "https://commons.wikimedia.org/wiki/File:019.The_Meeting_of_Isaac_and_Rebekah.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "020-isaac-blesses-jacob.jpg",
+  "title": "Isaac Blesses Jacob",
+  "plate": 20,
+  "source": "https://commons.wikimedia.org/wiki/File:020.Isaac_Blesses_Jacob.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "021-jacob-s-dream.jpg",
+  "title": "Jacob's Dream",
+  "plate": 21,
+  "source": "https://commons.wikimedia.org/wiki/File:021.Jacob%27s_Dream.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "022-jacob-tends-laban-s-flocks-and-meets-rachel.jpg",
+  "title": "Jacob Tends Laban's Flocks and Meets Rachel",
+  "plate": 22,
+  "source": "https://commons.wikimedia.org/wiki/File:022.Jacob_Tends_Laban%27s_Flocks_and_Meets_Rachel.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "023-jacob-prays-for-protection.jpg",
+  "title": "Jacob Prays for Protection",
+  "plate": 23,
+  "source": "https://commons.wikimedia.org/wiki/File:023.Jacob_Prays_for_Protection.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "024-jacob-wrestles-with-the-angel.jpg",
+  "title": "Jacob Wrestles with the Angel",
+  "plate": 24,
+  "source": "https://commons.wikimedia.org/wiki/File:024.Jacob_Wrestles_with_the_Angel.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "025-jacob-and-esau-meet.jpg",
+  "title": "Jacob and Esau Meet",
+  "plate": 25,
+  "source": "https://commons.wikimedia.org/wiki/File:025.Jacob_and_Esau_Meet.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "026-joseph-is-sold-by-his-brothers.jpg",
+  "title": "Joseph Is Sold by His Brothers",
+  "plate": 26,
+  "source": "https://commons.wikimedia.org/wiki/File:026.Joseph_Is_Sold_by_His_Brothers.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "027-joseph-interprets-pharaoh-s-dream.jpg",
+  "title": "Joseph Interprets Pharaoh's Dream",
+  "plate": 27,
+  "source": "https://commons.wikimedia.org/wiki/File:027.Joseph_Interprets_Pharaoh%27s_Dream.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "028-joseph-reveals-himself-to-his-brothers.jpg",
+  "title": "Joseph Reveals Himself to His Brothers",
+  "plate": 28,
+  "source": "https://commons.wikimedia.org/wiki/File:028.Joseph_Reveals_Himself_to_His_Brothers.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "029-jacob-goes-to-egypt.jpg",
+  "title": "Jacob Goes to Egypt",
+  "plate": 29,
+  "source": "https://commons.wikimedia.org/wiki/File:029.Jacob_Goes_to_Egypt.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "030-the-child-moses-on-the-nile.jpg",
+  "title": "The Child Moses on the Nile",
+  "plate": 30,
+  "source": "https://commons.wikimedia.org/wiki/File:030.The_Child_Moses_on_the_Nile.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "031-the-finding-of-moses.jpg",
+  "title": "The Finding of Moses",
+  "plate": 31,
+  "source": "https://commons.wikimedia.org/wiki/File:031.The_Finding_of_Moses.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "032-moses-and-aaron-appear-before-pharaoh.jpg",
+  "title": "Moses and Aaron Appear before Pharaoh",
+  "plate": 32,
+  "source": "https://commons.wikimedia.org/wiki/File:032.Moses_and_Aaron_Appear_before_Pharaoh.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "033-the-fifth-plague-livestock-disease.jpg",
+  "title": "The Fifth Plague. Livestock Disease",
+  "plate": 33,
+  "source": "https://commons.wikimedia.org/wiki/File:033.The_Fifth_Plague._Livestock_Disease.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "034-the-ninth-plague-darkness.jpg",
+  "title": "The Ninth Plague. Darkness",
+  "plate": 34,
+  "source": "https://commons.wikimedia.org/wiki/File:034.The_Ninth_Plague._Darkness.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "035-the-firstborn-of-the-egyptians-are-slain.jpg",
+  "title": "The Firstborn of the Egyptians Are Slain",
+  "plate": 35,
+  "source": "https://commons.wikimedia.org/wiki/File:035.The_Firstborn_of_the_Egyptians_Are_Slain.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "036-the-egyptians-ask-moses-to-depart.jpg",
+  "title": "The Egyptians Ask Moses to Depart",
+  "plate": 36,
+  "source": "https://commons.wikimedia.org/wiki/File:036.The_Egyptians_Ask_Moses_to_Depart.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "037-the-egyptians-drown-in-the-sea.jpg",
+  "title": "The Egyptians Drown in the Sea",
+  "plate": 37,
+  "source": "https://commons.wikimedia.org/wiki/File:037.The_Egyptians_Drown_in_the_Sea.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "038-the-giving-of-the-law-on-mount-sinai.jpg",
+  "title": "The Giving of the Law on Mount Sinai",
+  "plate": 38,
+  "source": "https://commons.wikimedia.org/wiki/File:038.The_Giving_of_the_Law_on_Mount_Sinai.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "039-moses-comes-down-from-mount-sinai.jpg",
+  "title": "Moses Comes Down from Mount Sinai",
+  "plate": 39,
+  "source": "https://commons.wikimedia.org/wiki/File:039.Moses_Comes_Down_from_Mount_Sinai.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "040-the-death-of-korah-dathan-and-abiram.jpg",
+  "title": "The Death of Korah, Dathan, and Abiram",
+  "plate": 40,
+  "source": "https://commons.wikimedia.org/wiki/File:040.The_Death_of_Korah,_Dathan,_and_Abiram.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "041-moses-strikes-the-rock-at-horeb.jpg",
+  "title": "Moses Strikes the Rock at Horeb",
+  "plate": 41,
+  "source": "https://commons.wikimedia.org/wiki/File:041.Moses_Strikes_the_Rock_at_Horeb.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "041a-moses-breaks-the-tables-of-the-law.jpg",
+  "title": "041A.Moses Breaks the Tables of the Law",
+  "plate": null,
+  "source": "https://commons.wikimedia.org/wiki/File:041A.Moses_Breaks_the_Tables_of_the_Law.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "041b-the-spies-return-from-the-promised-land.jpg",
+  "title": "041B.The Spies Return from the Promised Land",
+  "plate": null,
+  "source": "https://commons.wikimedia.org/wiki/File:041B.The_Spies_Return_from_the_Promised_Land.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "042-the-bronze-serpent.jpg",
+  "title": "The Bronze Serpent",
+  "plate": 42,
+  "source": "https://commons.wikimedia.org/wiki/File:042.The_Bronze_Serpent.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "043-an-angel-appears-to-balaam.jpg",
+  "title": "An Angel Appears to Balaam",
+  "plate": 43,
+  "source": "https://commons.wikimedia.org/wiki/File:043.An_Angel_Appears_to_Balaam.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "044-the-israelites-cross-the-jordan-river.jpg",
+  "title": "The Israelites Cross the Jordan River",
+  "plate": 44,
+  "source": "https://commons.wikimedia.org/wiki/File:044._The_Israelites_Cross_the_Jordan_River.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "045-an-angel-appears-to-the-israelites.jpg",
+  "title": "An Angel Appears to the Israelites",
+  "plate": 45,
+  "source": "https://commons.wikimedia.org/wiki/File:045._An_Angel_Appears_to_the_Israelites.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "046-the-walls-of-jericho-fall-down.jpg",
+  "title": "The Walls of Jericho Fall Down",
+  "plate": 46,
+  "source": "https://commons.wikimedia.org/wiki/File:046.The_Walls_of_Jericho_Fall_Down.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "047-joshua-spares-rahab.jpg",
+  "title": "Joshua Spares Rahab",
+  "plate": 47,
+  "source": "https://commons.wikimedia.org/wiki/File:047.Joshua_Spares_Rahab.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "048-achan-is-stoned-to-death.jpg",
+  "title": "Achan Is Stoned to Death",
+  "plate": 48,
+  "source": "https://commons.wikimedia.org/wiki/File:048.Achan_Is_Stoned_to_Death.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "049-joshua-burns-the-town-of-ai.jpg",
+  "title": "Joshua Burns the Town of Ai",
+  "plate": 49,
+  "source": "https://commons.wikimedia.org/wiki/File:049.Joshua_Burns_the_Town_of_Ai.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "050-the-army-of-the-amorites-is-destroyed.jpg",
+  "title": "The Army of the Amorites Is Destroyed",
+  "plate": 50,
+  "source": "https://commons.wikimedia.org/wiki/File:050.The_Army_of_the_Amorites_Is_Destroyed.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "051-joshua-commands-the-sun-to-stand-still.jpg",
+  "title": "Joshua Commands the Sun to Stand Still",
+  "plate": 51,
+  "source": "https://commons.wikimedia.org/wiki/File:051.Joshua_Commands_the_Sun_to_Stand_Still.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "052-jael-kills-sisera.jpg",
+  "title": "Jael Kills Sisera",
+  "plate": 52,
+  "source": "https://commons.wikimedia.org/wiki/File:052.Jael_Kills_Sisera.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "054-gideon-chooses-300-soldiers.jpg",
+  "title": "Gideon Chooses 300 Soldiers",
+  "plate": 54,
+  "source": "https://commons.wikimedia.org/wiki/File:054.Gideon_Chooses_300_Soldiers.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "055-the-midianites-are-routed.jpg",
+  "title": "The Midianites Are Routed",
+  "plate": 55,
+  "source": "https://commons.wikimedia.org/wiki/File:055.The_Midianites_Are_Routed.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "056-the-death-of-gideon-s-sons.jpg",
+  "title": "The Death of Gideon's Sons",
+  "plate": 56,
+  "source": "https://commons.wikimedia.org/wiki/File:056.The_Death_of_Gideon%27s_Sons.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "057-the-death-of-abimelech.jpg",
+  "title": "The Death of Abimelech",
+  "plate": 57,
+  "source": "https://commons.wikimedia.org/wiki/File:057.The_Death_of_Abimelech.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "058-jephthah-s-daughter-comes-to-meet-her-father.jpg",
+  "title": "Jephthah's Daughter Comes to Meet Her Father",
+  "plate": 58,
+  "source": "https://commons.wikimedia.org/wiki/File:058.Jephthah%27s_Daughter_Comes_to_Meet_Her_Father.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "059-israelite-women-mourn-with-jephthah-s-daughter.jpg",
+  "title": "Israelite Women Mourn with Jephthah's Daughter",
+  "plate": 59,
+  "source": "https://commons.wikimedia.org/wiki/File:059.Israelite_Women_Mourn_with_Jephthah%27s_Daughter.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "060-samson-slays-a-lion.jpg",
+  "title": "Samson Slays a Lion",
+  "plate": 60,
+  "source": "https://commons.wikimedia.org/wiki/File:060.Samson_Slays_a_Lion.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "061-samson-destroys-the-philistines-with-an-ass-jawbone.jpg",
+  "title": "Samson Destroys the Philistines with an Ass' Jawbone",
+  "plate": 61,
+  "source": "https://commons.wikimedia.org/wiki/File:061.Samson_Destroys_the_Philistines_with_an_Ass%27_Jawbone.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "062-samson-carries-away-the-gates-of-gaza.jpg",
+  "title": "Samson Carries away the Gates of Gaza",
+  "plate": 62,
+  "source": "https://commons.wikimedia.org/wiki/File:062.Samson_Carries_away_the_Gates_of_Gaza.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "063-samson-and-delilah.jpg",
+  "title": "Samson and Delilah",
+  "plate": 63,
+  "source": "https://commons.wikimedia.org/wiki/File:063.Samson_and_Delilah.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "064-the-death-of-samson.jpg",
+  "title": "The Death of Samson",
+  "plate": 64,
+  "source": "https://commons.wikimedia.org/wiki/File:064.The_Death_of_Samson.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "065-a-levite-finds-a-woman-s-corpse.jpg",
+  "title": "A Levite Finds a Woman's Corpse",
+  "plate": 65,
+  "source": "https://commons.wikimedia.org/wiki/File:065.A_Levite_Finds_a_Woman%27s_Corpse.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "066-the-levite-carries-the-woman-s-body-away.jpg",
+  "title": "The Levite Carries the Woman's Body Away",
+  "plate": 66,
+  "source": "https://commons.wikimedia.org/wiki/File:066.The_Levite_Carries_the_Woman%27s_Body_Away.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "067-the-benjaminites-take-the-virgins-of-jabesh-gilead.jpg",
+  "title": "The Benjaminites Take the Virgins of Jabesh-gilead",
+  "plate": 67,
+  "source": "https://commons.wikimedia.org/wiki/File:067.The_Benjaminites_Take_the_Virgins_of_Jabesh-gilead.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "068-naomi-and-her-daughters-in-law.jpg",
+  "title": "Naomi and Her Daughters-in-Law",
+  "plate": 68,
+  "source": "https://commons.wikimedia.org/wiki/File:068.Naomi_and_Her_Daughters-in-Law.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "069-ruth-and-boaz.jpg",
+  "title": "Ruth and Boaz",
+  "plate": 69,
+  "source": "https://commons.wikimedia.org/wiki/File:069.Ruth_and_Boaz.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "070-the-ark-is-returned-to-beth-shemesh.jpg",
+  "title": "The Ark Is Returned to Beth-shemesh",
+  "plate": 70,
+  "source": "https://commons.wikimedia.org/wiki/File:070.The_Ark_Is_Returned_to_Beth-shemesh.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "070a-samuel-blesses-saul.jpg",
+  "title": "070A.Samuel Blesses Saul",
+  "plate": null,
+  "source": "https://commons.wikimedia.org/wiki/File:070A.Samuel_Blesses_Saul.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "071-the-death-of-agag.jpg",
+  "title": "The Death of Agag",
+  "plate": 71,
+  "source": "https://commons.wikimedia.org/wiki/File:071.The_Death_of_Agag.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "071a-david-slays-goliath.jpg",
+  "title": "071A.David Slays Goliath",
+  "plate": null,
+  "source": "https://commons.wikimedia.org/wiki/File:071A.David_Slays_Goliath.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "072-saul-attempts-to-kill-david.jpg",
+  "title": "Saul Attempts to Kill David",
+  "plate": 72,
+  "source": "https://commons.wikimedia.org/wiki/File:072.Saul_Attempts_to_Kill_David.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "073-david-escapes-through-a-window.jpg",
+  "title": "David Escapes through a Window",
+  "plate": 73,
+  "source": "https://commons.wikimedia.org/wiki/File:073.David_Escapes_through_a_Window.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "073a-david-and-jonathan.jpg",
+  "title": "073A.David and Jonathan",
+  "plate": null,
+  "source": "https://commons.wikimedia.org/wiki/File:073A.David_and_Jonathan.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "074-david-shows-saul-how-he-spared-his-life.jpg",
+  "title": "David Shows Saul How He Spared His Life",
+  "plate": 74,
+  "source": "https://commons.wikimedia.org/wiki/File:074.David_Shows_Saul_How_He_Spared_His_Life.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "075-saul-and-the-witch-of-endor.jpg",
+  "title": "Saul and the Witch of Endor",
+  "plate": 75,
+  "source": "https://commons.wikimedia.org/wiki/File:075.Saul_and_the_Witch_of_Endor.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "076-the-death-of-saul.jpg",
+  "title": "The Death of Saul",
+  "plate": 76,
+  "source": "https://commons.wikimedia.org/wiki/File:076.The_Death_of_Saul.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "077-jabesh-gileadites-recover-the-bodies-of-saul-and-his-sons.jpg",
+  "title": "Jabesh-Gileadites Recover the Bodies of Saul and His Sons",
+  "plate": 77,
+  "source": "https://commons.wikimedia.org/wiki/File:077.Jabesh-Gileadites_Recover_the_Bodies_of_Saul_and_His_Sons.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "078-combat-between-soldiers-of-ish-bosheth-and-david.jpg",
+  "title": "Combat between Soldiers of Ish-bosheth and David",
+  "plate": 78,
+  "source": "https://commons.wikimedia.org/wiki/File:078.Combat_between_Soldiers_of_Ish-bosheth_and_David.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "079-david-attacks-the-ammonites.jpg",
+  "title": "David Attacks the Ammonites",
+  "plate": 79,
+  "source": "https://commons.wikimedia.org/wiki/File:079.David_Attacks_the_Ammonites.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "080-the-death-of-absalom.jpg",
+  "title": "The Death of Absalom",
+  "plate": 80,
+  "source": "https://commons.wikimedia.org/wiki/File:080.The_Death_of_Absalom.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "081-david-mourns-the-death-of-absalom.jpg",
+  "title": "David Mourns the Death of Absalom",
+  "plate": 81,
+  "source": "https://commons.wikimedia.org/wiki/File:081.David_Mourns_the_Death_of_Absalom.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "082-rizpah-s-kindness-toward-the-dead.jpg",
+  "title": "Rizpah’s Kindness toward the Dead",
+  "plate": 82,
+  "source": "https://commons.wikimedia.org/wiki/File:082.Rizpah%E2%80%99s_Kindness_toward_the_Dead.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "083-abishai-saves-david-s-life.jpg",
+  "title": "Abishai Saves David's Life",
+  "plate": 83,
+  "source": "https://commons.wikimedia.org/wiki/File:083.Abishai_Saves_David%27s_Life.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "084-the-judgment-of-solomon.jpg",
+  "title": "The Judgment of Solomon",
+  "plate": 84,
+  "source": "https://commons.wikimedia.org/wiki/File:084.The_Judgment_of_Solomon.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "085-cedars-are-cut-down-for-the-jerusalem-temple.jpg",
+  "title": "Cedars Are Cut Down for the Jerusalem Temple",
+  "plate": 85,
+  "source": "https://commons.wikimedia.org/wiki/File:085.Cedars_Are_Cut_Down_for_the_Jerusalem_Temple.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "086-solomon-receives-the-queen-of-sheba.jpg",
+  "title": "Solomon Receives the Queen of Sheba",
+  "plate": 86,
+  "source": "https://commons.wikimedia.org/wiki/File:086.Solomon_Receives_the_Queen_of_Sheba.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "087-king-solomon-in-old-age.jpg",
+  "title": "King Solomon in Old Age",
+  "plate": 87,
+  "source": "https://commons.wikimedia.org/wiki/File:087.King_Solomon_in_Old_Age.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "088-the-disobedient-prophet-is-slain-by-a-lion.jpg",
+  "title": "The Disobedient Prophet Is Slain by a Lion",
+  "plate": 88,
+  "source": "https://commons.wikimedia.org/wiki/File:088.The_Disobedient_Prophet_Is_Slain_by_a_Lion.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "089-elijah-raises-the-son-of-the-widow-of-zarephath.jpg",
+  "title": "Elijah Raises the Son of the Widow of Zarephath",
+  "plate": 89,
+  "source": "https://commons.wikimedia.org/wiki/File:089.Elijah_Raises_the_Son_of_the_Widow_of_Zarephath.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "090-the-prophets-of-baal-are-slaughtered.jpg",
+  "title": "The Prophets of Baal Are Slaughtered",
+  "plate": 90,
+  "source": "https://commons.wikimedia.org/wiki/File:090.The_Prophets_of_Baal_Are_Slaughtered.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "091-elijah-is-nourished-by-an-angel.jpg",
+  "title": "Elijah Is Nourished by an Angel",
+  "plate": 91,
+  "source": "https://commons.wikimedia.org/wiki/File:091.Elijah_Is_Nourished_by_an_Angel.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "092-the-israelites-slaughter-the-syrians.jpg",
+  "title": "The Israelites Slaughter the Syrians",
+  "plate": 92,
+  "source": "https://commons.wikimedia.org/wiki/File:092.The_Israelites_Slaughter_the_Syrians.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "093-the-death-of-ahab.jpg",
+  "title": "The Death of Ahab",
+  "plate": 93,
+  "source": "https://commons.wikimedia.org/wiki/File:093.The_Death_of_Ahab.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "094-elijah-destroys-the-messengers-of-ahaziah.jpg",
+  "title": "Elijah Destroys the Messengers of Ahaziah",
+  "plate": 94,
+  "source": "https://commons.wikimedia.org/wiki/File:094.Elijah_Destroys_the_Messengers_of_Ahaziah.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "095-elijah-ascends-to-heaven-in-a-chariot-of-fire.jpg",
+  "title": "Elijah Ascends to Heaven in a Chariot of Fire",
+  "plate": 95,
+  "source": "https://commons.wikimedia.org/wiki/File:095.Elijah_Ascends_to_Heaven_in_a_Chariot_of_Fire.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "095-some-children-are-destroyed-by-bears.jpg",
+  "title": "Some Children Are Destroyed by Bears",
+  "plate": 95,
+  "source": "https://commons.wikimedia.org/wiki/File:095.Some_Children_Are_Destroyed_by_Bears.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "096-a-famine-in-samaria.jpg",
+  "title": "A Famine in Samaria",
+  "plate": 96,
+  "source": "https://commons.wikimedia.org/wiki/File:096.A_Famine_in_Samaria.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "097-the-death-of-jezebel.jpg",
+  "title": "The Death of Jezebel",
+  "plate": 97,
+  "source": "https://commons.wikimedia.org/wiki/File:097.The_Death_of_Jezebel.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "098-jehu-s-companions-find-jezebel-s-remains.jpg",
+  "title": "Jehu's Companions Find Jezebel's Remains",
+  "plate": 98,
+  "source": "https://commons.wikimedia.org/wiki/File:098.Jehu%27s_Companions_Find_Jezebel%27s_Remains.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "099-the-death-of-athaliah.jpg",
+  "title": "The Death of Athaliah",
+  "plate": 99,
+  "source": "https://commons.wikimedia.org/wiki/File:099.The_Death_of_Athaliah.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "100-foreign-nations-are-slain-by-lions-in-samaria.jpg",
+  "title": "Foreign Nations Are Slain by Lions in Samaria",
+  "plate": 100,
+  "source": "https://commons.wikimedia.org/wiki/File:100.Foreign_Nations_Are_Slain_by_Lions_in_Samaria.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "101-sennacherib-s-army-is-destroyed.jpg",
+  "title": "Sennacherib's Army Is Destroyed",
+  "plate": 101,
+  "source": "https://commons.wikimedia.org/wiki/File:101.Sennacherib%27s_Army_Is_Destroyed.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "102-zedekiah-s-sons-are-slaughtered-before-his-eyes.jpg",
+  "title": "Zedekiah's Sons Are Slaughtered before His Eyes",
+  "plate": 102,
+  "source": "https://commons.wikimedia.org/wiki/File:102.Zedekiah%27s_Sons_Are_Slaughtered_before_His_Eyes.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "102a-the-plague-of-jerusalem.jpg",
+  "title": "102A.The Plague of Jerusalem",
+  "plate": null,
+  "source": "https://commons.wikimedia.org/wiki/File:102A.The_Plague_of_Jerusalem.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "103-the-ammonite-and-moabite-armies-are-destroyed.jpg",
+  "title": "The Ammonite and Moabite Armies Are Destroyed",
+  "plate": 103,
+  "source": "https://commons.wikimedia.org/wiki/File:103.The_Ammonite_and_Moabite_Armies_Are_Destroyed.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "104-cyrus-restores-the-vessels-of-the-temple.jpg",
+  "title": "Cyrus Restores the Vessels of the Temple",
+  "plate": 104,
+  "source": "https://commons.wikimedia.org/wiki/File:104.Cyrus_Restores_the_Vessels_of_the_Temple.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "105-the-rebuilding-of-the-temple-is-begun.jpg",
+  "title": "The Rebuilding of the Temple Is Begun",
+  "plate": 105,
+  "source": "https://commons.wikimedia.org/wiki/File:105.The_Rebuilding_of_the_Temple_Is_Begun.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "106-artaxerxes-grants-freedom-to-the-jews.jpg",
+  "title": "Artaxerxes Grants Freedom to the Jews",
+  "plate": 106,
+  "source": "https://commons.wikimedia.org/wiki/File:106.Artaxerxes_Grants_Freedom_to_the_Jews.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "107-ezra-kneels-in-prayer.jpg",
+  "title": "Ezra Kneels in Prayer",
+  "plate": 107,
+  "source": "https://commons.wikimedia.org/wiki/File:107.Ezra_Kneels_in_Prayer.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "108-nehemiah-views-the-ruins-of-jerusalem-s-walls.jpg",
+  "title": "Nehemiah Views the Ruins of Jerusalem's Walls",
+  "plate": 108,
+  "source": "https://commons.wikimedia.org/wiki/File:108.Nehemiah_Views_the_Ruins_of_Jerusalem%27s_Walls.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "109-ezra-reads-the-law-to-the-people.jpg",
+  "title": "Ezra Reads the Law to the People",
+  "plate": 109,
+  "source": "https://commons.wikimedia.org/wiki/File:109.Ezra_Reads_the_Law_to_the_People.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "114-queen-vashti-refuses-to-obey-ahasuerus-command.jpg",
+  "title": "Queen Vashti Refuses to Obey Ahasuerus' Command",
+  "plate": 114,
+  "source": "https://commons.wikimedia.org/wiki/File:114.Queen_Vashti_Refuses_to_Obey_Ahasuerus%27_Command.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "115-esther-before-the-king.jpg",
+  "title": "Esther Before the King",
+  "plate": 115,
+  "source": "https://commons.wikimedia.org/wiki/File:115.Esther_Before_the_King.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "116-the-triumph-of-mordecai.jpg",
+  "title": "The Triumph of Mordecai",
+  "plate": 116,
+  "source": "https://commons.wikimedia.org/wiki/File:116.The_Triumph_of_Mordecai.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "117-esther-accuses-haman.jpg",
+  "title": "Esther Accuses Haman",
+  "plate": 117,
+  "source": "https://commons.wikimedia.org/wiki/File:117.Esther_Accuses_Haman.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "118-job-hears-of-his-misfortunes.jpg",
+  "title": "Job Hears of His Misfortunes",
+  "plate": 118,
+  "source": "https://commons.wikimedia.org/wiki/File:118.Job_Hears_of_His_Misfortunes.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "119-job-speaks-with-his-friends.jpg",
+  "title": "Job Speaks with His Friends",
+  "plate": 119,
+  "source": "https://commons.wikimedia.org/wiki/File:119.Job_Speaks_with_His_Friends.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "120-the-prophet-isaiah.jpg",
+  "title": "The Prophet Isaiah",
+  "plate": 120,
+  "source": "https://commons.wikimedia.org/wiki/File:120.The_Prophet_Isaiah.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "121-isaiah-s-vision-of-the-destruction-of-babylon.jpg",
+  "title": "Isaiah's Vision of the Destruction of Babylon",
+  "plate": 121,
+  "source": "https://commons.wikimedia.org/wiki/File:121.Isaiah%27s_Vision_of_the_Destruction_of_Babylon.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "122-the-destruction-of-leviathan.jpg",
+  "title": "The Destruction of Leviathan",
+  "plate": 122,
+  "source": "https://commons.wikimedia.org/wiki/File:122.The_Destruction_of_Leviathan.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "123-baruch-writes-jeremiah-s-prophecies.jpg",
+  "title": "Baruch Writes Jeremiah's Prophecies",
+  "plate": 123,
+  "source": "https://commons.wikimedia.org/wiki/File:123.Baruch_Writes_Jeremiah%27s_Prophecies.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "123-the-prophet-jeremiah.jpg",
+  "title": "The Prophet Jeremiah",
+  "plate": 123,
+  "source": "https://commons.wikimedia.org/wiki/File:123.The_Prophet_Jeremiah.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "124-people-mourn-over-the-destruction-of-jerusalem.jpg",
+  "title": "People Mourn over the Destruction of Jerusalem",
+  "plate": 124,
+  "source": "https://commons.wikimedia.org/wiki/File:124.People_Mourn_over_the_Destruction_of_Jerusalem.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "126-the-prophet-ezekiel.jpg",
+  "title": "The Prophet Ezekiel",
+  "plate": 126,
+  "source": "https://commons.wikimedia.org/wiki/File:126.The_Prophet_Ezekiel.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "128-daniel-among-the-exiles.jpg",
+  "title": "Daniel among the Exiles",
+  "plate": 128,
+  "source": "https://commons.wikimedia.org/wiki/File:128.Daniel_among_the_Exiles.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "129-shadrach-meshach-and-abednego-in-the-furnace.jpg",
+  "title": "Shadrach, Meshach and Abednego in the Furnace",
+  "plate": 129,
+  "source": "https://commons.wikimedia.org/wiki/File:129.Shadrach,_Meshach_and_Abednego_in_the_Furnace.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "130-daniel-interprets-the-writing-on-the-wall.jpg",
+  "title": "Daniel Interprets the Writing on the Wall",
+  "plate": 130,
+  "source": "https://commons.wikimedia.org/wiki/File:130.Daniel_Interprets_the_Writing_on_the_Wall.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "131-daniel-in-the-lions-den.jpg",
+  "title": "Daniel in the Lions' Den",
+  "plate": 131,
+  "source": "https://commons.wikimedia.org/wiki/File:131.Daniel_in_the_Lions%27_Den.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "132-daniel-s-vision-of-the-four-beasts.jpg",
+  "title": "Daniel's Vision of the Four Beasts",
+  "plate": 132,
+  "source": "https://commons.wikimedia.org/wiki/File:132.Daniel%27s_Vision_of_the_Four_Beasts.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "136-the-prophet-amos.jpg",
+  "title": "The Prophet Amos",
+  "plate": 136,
+  "source": "https://commons.wikimedia.org/wiki/File:136.The_Prophet_Amos.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "137-jonah-is-spewed-forth-by-the-whale.jpg",
+  "title": "Jonah Is Spewed Forth by the Whale",
+  "plate": 137,
+  "source": "https://commons.wikimedia.org/wiki/File:137.Jonah_Is_Spewed_Forth_by_the_Whale.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "138-jonah-preaches-to-the-ninevites.jpg",
+  "title": "Jonah Preaches to the Ninevites",
+  "plate": 138,
+  "source": "https://commons.wikimedia.org/wiki/File:138.Jonah_Preaches_to_the_Ninevites.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "139-micah-exhorts-the-israelites-to-repent.jpg",
+  "title": "Micah Exhorts the Israelites to Repent",
+  "plate": 139,
+  "source": "https://commons.wikimedia.org/wiki/File:139.Micah_Exhorts_the_Israelites_to_Repent.jpg",
+  "license": "Public domain"
+ },
+ {
+  "file": "140-zechariah-s-vision-of-four-chariots.jpg",
+  "title": "Zechariah's Vision of Four Chariots",
+  "plate": 140,
+  "source": "https://commons.wikimedia.org/wiki/File:140.Zechariah%27s_Vision_of_Four_Chariots.jpg",
+  "license": "Public domain"
+ }
+]

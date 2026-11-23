@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import random
 import re
 import time
 import unicodedata
@@ -16,12 +17,14 @@ from sqlalchemy.orm import Session
 from app.ai.base import AIProviderError, ChatMessage
 from app.ai.manager import ai_manager
 from app.ai.prompts import build_jarvis_system_prompt
-from app.ai.tool_orchestrator import extract_tool_call
+from app.ai.agent_loop import run_agent_turn
+from app.brain import learning
+from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.database.models import Conversation, Message
 from app.system.telemetry import get_system_snapshot
 from app.tools.registry import tool_registry
-from app.voice.wake_word import WakeWordGate
+from app.voice.wake_word import WakeWordGate, mentions_wake_word
 
 logger = get_logger("voice.ambient_brain")
 
@@ -56,6 +59,61 @@ _OPINION_INVITE_RE = re.compile(
     r"que achas|concordas|diz la|fala muquissi|da a tua opiniao|opina ai|opina aí)\b",
     re.IGNORECASE,
 )
+
+_VOICE_STYLE_SUFFIX = (
+    "Modo falado ao vivo (o texto vai ser lido em voz alta pela tua voz de arcanjo): proclamação em "
+    "prosa, sem listas, markdown, emojis nem URLs. Numa conversa simples, 1 a 3 frases. Quando anuncias "
+    "as Escrituras, lê o versículo completo entre «» e depois revela o sentido em poucas frases solenes; "
+    "oferece ler mais em vez de despejar tudo de uma vez."
+)
+
+_WAKE_ACKS = (
+    "Diz, Carlos.",
+    "Sim?",
+    "Estou a ouvir.",
+    "Às ordens.",
+    "Pronto, diz lá.",
+    "Aqui estou.",
+    "Fala comigo.",
+)
+
+
+def voice_ai_overrides() -> dict[str, str | None]:
+    """Pick the fastest configured brain for spoken conversation.
+
+    VOICE_AI_PROVIDER/VOICE_AI_MODEL win; otherwise Groq is used automatically when a
+    GROQ_API_KEY exists (it is already required for speech recognition and answers in
+    well under a second). Falls back to the globally selected provider.
+    """
+    settings = get_settings()
+    provider = settings.voice_ai_provider.strip() or None
+    if provider is None and settings.groq_api_key.strip():
+        provider = "groq"
+    model = settings.voice_ai_model.strip() or None
+    return {"provider_override": provider, "model_override": model}
+
+
+_CONFIRM_YES_RE = re.compile(
+    r"^(?:sim|confirmo|confirmado|podes|pode|avanca|claro|isso mesmo)\b"
+)
+CONFIRMATION_TTL_SECONDS = 60.0
+_CONFIRM_NO_RE = re.compile(r"\b(nao|cancela|cancelar|para|espera|esquece|deixa|nem pensar|negativo)\b")
+
+_SHORT_REPLIES = {
+    "ola", "oi", "sim", "nao", "obrigado", "obrigada", "ok", "okay", "boas", "bom dia", "boa tarde",
+    "boa noite", "para", "chega", "cancela", "continua", "ajuda", "tchau", "adeus", "pronto",
+}
+
+
+def is_stray_fragment(text: str) -> bool:
+    """A lone word that isn't a question, a normal short reply or her name: likely a stray
+    fragment from a video/TV or a mis-transcription — don't answer it."""
+    norm = re.sub(r"[^\w\s?]", "", _normalize_text(text)).strip()
+    if "?" in text or mentions_wake_word(text):
+        return False
+    words = norm.replace("?", "").split()
+    return len(words) <= 1 and norm not in _SHORT_REPLIES
+
 
 _SILENCE_MARKER_RE = re.compile(r"^[\[\(\s*_`]*sil[eê]ncio[\]\)\s*_`.!]*$", re.IGNORECASE)
 
@@ -128,7 +186,7 @@ def infer_face_mood(
 
 @dataclass
 class RoomUtterance:
-    """Single heard line or Muquissi intervention in the room buffer."""
+    """Single heard line or Arcanjo intervention in the room buffer."""
 
     speaker: str
     text: str
@@ -162,7 +220,7 @@ class AmbientDecision:
 
 
 class AmbientConversationBrain:
-    """Maintains room dialogue context and decides when Muquissi should speak an opinion."""
+    """Maintains room dialogue context and decides when Arcanjo should speak an opinion."""
 
     def __init__(
         self,
@@ -170,9 +228,10 @@ class AmbientConversationBrain:
         proactive_cooldown_seconds: float = 3.5,
         follow_up_window_seconds: int = 30,
         buffer_ttl_seconds: float = 600.0,
+        mode: ListeningMode = "proactive",
     ) -> None:
         self.wake_gate = WakeWordGate(active_window_seconds=active_window_seconds)
-        self.mode: ListeningMode = "proactive"
+        self.mode: ListeningMode = mode if mode in VALID_LISTENING_MODES else "proactive"
         self.proactive_cooldown_seconds = proactive_cooldown_seconds
         self.follow_up_window_seconds = follow_up_window_seconds
         self.buffer_ttl_seconds = buffer_ttl_seconds
@@ -183,6 +242,10 @@ class AmbientConversationBrain:
         self._last_assistant_at: float = 0.0
         self._interventions_count: int = 0
         self._conversation_id: int | None = None
+        self._last_activity_at: float = 0.0
+        self._pending_approval_id: str | None = None
+        self._pending_set_at: float = 0.0
+        self.music_playing: bool = False
         self._lock = asyncio.Lock()
 
     @property
@@ -202,28 +265,53 @@ class AmbientConversationBrain:
         if mode == "wake_word":
             self.wake_gate.reset_window()
 
+    def likely_to_respond(self, text: str) -> bool:
+        """Cheap pre-check (no LLM) used to decide whether to play the "heard you" cue."""
+        raw = text.strip()
+        if not is_meaningful_speech(raw) or self._is_self_echo(_normalize_text(raw)):
+            return False
+        named = mentions_wake_word(raw)
+        if self.music_playing and not named and not self._pending_approval_id:
+            return False
+        if self.mode == "always_reply":
+            return (
+                bool(self._pending_approval_id)
+                or self.wake_gate.is_window_active
+                or not is_stray_fragment(raw)
+            )
+        return named or self.wake_gate.is_window_active or bool(self._pending_approval_id)
+
+    def seconds_since_activity(self) -> float | None:
+        """Seconds since the last exchange with Carlos (None if none yet)."""
+        if not self._last_activity_at:
+            return None
+        return time.monotonic() - self._last_activity_at
+
+    def current_conversation_id(self) -> int | None:
+        return self._conversation_id
+
     def _prune_buffer(self) -> None:
         cutoff = time.monotonic() - self.buffer_ttl_seconds
         while self._room_buffer and self._room_buffer[0].timestamp < cutoff:
             self._room_buffer.popleft()
 
     def record_room_utterance(self, text: str, source: str = "room") -> None:
-        """Append a heard room statement so Muquissi builds conversational context."""
+        """Append a heard room statement so Arcanjo builds conversational context."""
         self._prune_buffer()
         self._room_buffer.append(RoomUtterance(speaker="Conversa na Sala", text=text, source=source))
 
     def record_assistant_turn(self, text: str) -> None:
-        """Record Muquissi's own spoken comment in the room buffer."""
+        """Record Arcanjo's own spoken comment in the room buffer."""
         clean = text.strip()
         if not clean:
             return
         self._prune_buffer()
         self._last_assistant_norm = _normalize_text(clean)
         self._last_assistant_at = time.monotonic()
-        self._room_buffer.append(RoomUtterance(speaker="Muquissi", text=clean, source="assistant"))
+        self._room_buffer.append(RoomUtterance(speaker="Arcanjo", text=clean, source="assistant"))
 
     def _is_self_echo(self, normalized_text: str) -> bool:
-        """Detect speaker-to-mic acoustic feedback of Muquissi's own recent sentence."""
+        """Detect speaker-to-mic acoustic feedback of Arcanjo's own recent sentence."""
         if not self._last_assistant_norm:
             return False
         if (time.monotonic() - self._last_assistant_at) > 12.0:
@@ -264,6 +352,15 @@ class AmbientConversationBrain:
     def _ensure_conversation(self, db: Session, title_hint: str, conversation_id: int | None) -> int:
         conv: Conversation | None = None
         target_id = conversation_id if conversation_id is not None else self._conversation_id
+        gap_seconds = get_settings().brain_episode_gap_minutes * 60
+        if (
+            conversation_id is None
+            and target_id is not None
+            and self._last_activity_at
+            and time.monotonic() - self._last_activity_at > gap_seconds
+        ):
+            # Long pause: this was a separate "moment" — start a fresh conversation.
+            target_id = None
         if target_id is not None:
             conv = db.get(Conversation, target_id)
         if conv is None:
@@ -271,8 +368,29 @@ class AmbientConversationBrain:
             db.add(conv)
             db.commit()
             db.refresh(conv)
+            # Turn the previous conversation into a lasting memory, like a person would.
+            learning.spawn(learning.remember_previous_conversation(conv.id))
         self._conversation_id = conv.id
+        self._last_activity_at = time.monotonic()
         return conv.id
+
+    def _voice_context(self, db: Session, conv_id: int) -> list[ChatMessage]:
+        context = ai_manager.build_conversation_messages(
+            db, conv_id, tools_catalog=tool_registry.build_prompt_catalog()
+        )
+        if context and context[0].role == "system":
+            context[0] = ChatMessage(
+                role="system",
+                content=f"{context[0].content}\n\n{_VOICE_STYLE_SUFFIX}",
+            )
+        return context
+
+    def _remember_turn(self, db: Session, conv_id: int | None, user_text: str, reply: str) -> None:
+        if conv_id is None:
+            return
+        db.add(Message(conversation_id=conv_id, role="assistant", content=reply))
+        db.commit()
+        learning.note_exchange(user_text, reply)
 
     async def _run_direct_reply(
         self,
@@ -288,59 +406,72 @@ class AmbientConversationBrain:
             conv_id = self._ensure_conversation(db, user_text, conv_id)
             db.add(Message(conversation_id=conv_id, role="user", content=user_text))
             db.commit()
-            context = ai_manager.build_conversation_messages(
-                db, conv_id, tools_catalog=tool_registry.build_prompt_catalog()
-            )
-            if context and context[0].role == "system":
-                context[0] = ChatMessage(
-                    role="system",
-                    content=(
-                        f"{context[0].content}\n\n"
-                        "Modo conversa falada ao vivo: responde em 1 a 2 frases curtas, diretas e "
-                        "naturais para ser lido em voz alta (sem listas, sem rodeios e sem 'posso ajudar em algo mais')."
-                    ),
-                )
+            context = self._voice_context(db, conv_id)
         else:
             context = [
-                ChatMessage(role="system", content=build_jarvis_system_prompt(snapshot)),
+                ChatMessage(
+                    role="system",
+                    content=f"{build_jarvis_system_prompt(snapshot)}\n\n{_VOICE_STYLE_SUFFIX}",
+                ),
                 ChatMessage(role="user", content=user_text),
             ]
 
-        reply_text, used_provider, used_model, _ = await ai_manager.generate_chat(
-            db=db, messages=context
-        )
+        from app.security.guard import guard_messages
 
-        parsed = extract_tool_call(reply_text)
-        if parsed is not None:
-            outcome = await tool_registry.invoke(db=db, tool_name=parsed.tool, params=parsed.args)
-            if outcome.status in ("awaiting_confirmation", "blocked"):
-                reply_text = outcome.message
-            else:
-                tool_payload = (
-                    outcome.result.model_dump()
-                    if outcome.result
-                    else {"success": False, "error": outcome.message}
-                )
-                followup = [
-                    *context,
-                    ChatMessage(role="assistant", content=reply_text),
-                    ChatMessage(
-                        role="user",
-                        content=(
-                            f"Resultado real da ferramenta '{parsed.tool}': {tool_payload}. "
-                            "Responde agora em português natural e conciso."
-                        ),
-                    ),
-                ]
-                reply_text, used_provider, used_model, _ = await ai_manager.generate_chat(
-                    db=db, messages=followup
-                )
+        context = guard_messages(context, user_text)
+        turn = await run_agent_turn(db=db, messages=context, **voice_ai_overrides())
+        self._pending_approval_id = turn.pending_approval.id if turn.pending_approval else None
+        self._pending_set_at = time.monotonic()
+        reply_text = turn.reply
 
-        if persist_user and conv_id is not None:
-            db.add(Message(conversation_id=conv_id, role="assistant", content=reply_text))
+        if persist_user:
+            self._remember_turn(db, conv_id, user_text, reply_text)
+        return reply_text, turn.provider, turn.model, conv_id
+
+    async def _resolve_pending_confirmation(
+        self, db: Session, text: str, conversation_id: int | None
+    ) -> tuple[str, str, str, int | None] | None:
+        """Handle "sim/não" after Arcanjo asked to confirm a destructive action."""
+        approval_id = self._pending_approval_id
+        if not approval_id:
+            return None
+        self._pending_approval_id = None
+        norm = _normalize_text(text)
+        conv_id = self._ensure_conversation(db, text, conversation_id)
+
+        if _CONFIRM_YES_RE.search(norm) and not _CONFIRM_NO_RE.search(norm):
+            db.add(Message(conversation_id=conv_id, role="user", content=text))
             db.commit()
+            outcome = await tool_registry.approve_pending(db, approval_id)
+            observation = (
+                outcome.result.model_dump()
+                if outcome.result is not None
+                else {"success": False, "error": outcome.message}
+            )
+            context = self._voice_context(db, conv_id)
+            context.append(
+                ChatMessage(
+                    role="user",
+                    content=(
+                        f"[O Carlos confirmou. Resultado real de '{outcome.tool_name}']: {observation}\n"
+                        "Continua o pedido dele se faltar algo; senão diz-lhe em poucas palavras como correu."
+                    ),
+                )
+            )
+            turn = await run_agent_turn(db=db, messages=context, **voice_ai_overrides())
+            self._pending_approval_id = turn.pending_approval.id if turn.pending_approval else None
+            self._pending_set_at = time.monotonic()
+            self._remember_turn(db, conv_id, text, turn.reply)
+            return turn.reply, turn.provider, turn.model, conv_id
 
-        return reply_text, used_provider, used_model, conv_id
+        await tool_registry.reject_pending(db, approval_id)
+        if _CONFIRM_NO_RE.search(norm) and len(norm.split()) <= 4:
+            reply = random.choice(("Está bem, não mexo em nada.", "Cancelado.", "Ok, fica como está."))
+            db.add(Message(conversation_id=conv_id, role="user", content=text))
+            db.commit()
+            self._remember_turn(db, conv_id, text, reply)
+            return reply, "local", "confirm", conv_id
+        return None  # he moved on to something else: treat it as a normal request
 
     async def evaluate_and_respond(
         self,
@@ -372,6 +503,30 @@ class AmbientConversationBrain:
                     window_active=self.wake_gate.is_window_active,
                     mode=self.mode,
                 )
+            if self.music_playing and not mentions_wake_word(raw) and not self._pending_approval_id:
+                # Lyrics of the song playing are not Carlos talking to her: only her name counts.
+                return AmbientDecision(
+                    heard=True,
+                    should_speak=False,
+                    reason="music_playing",
+                    cleaned_text=raw,
+                    window_active=self.wake_gate.is_window_active,
+                    mode=self.mode,
+                )
+            if (
+                self.mode == "always_reply"
+                and not self._pending_approval_id
+                and not self.wake_gate.is_window_active
+                and is_stray_fragment(raw)
+            ):
+                return AmbientDecision(
+                    heard=True,
+                    should_speak=False,
+                    reason="stray_fragment",
+                    cleaned_text=raw,
+                    window_active=False,
+                    mode=self.mode,
+                )
             invited_opinion = bool(_OPINION_INVITE_RE.search(normalized))
             evaluation = self.wake_gate.evaluate(raw, require_wake_word=True)
 
@@ -386,18 +541,46 @@ class AmbientConversationBrain:
                     mode=self.mode,
                 )
 
-            # Wake word only ("Muquissi!")
+            if (
+                self._pending_approval_id
+                and time.monotonic() - self._pending_set_at > CONFIRMATION_TTL_SECONDS
+            ):
+                await tool_registry.reject_pending(db, self._pending_approval_id)
+                self._pending_approval_id = None
+            if (
+                self._pending_approval_id
+                and not evaluation.wake_only
+                and (evaluation.accepted or self.mode == "always_reply")
+            ):
+                pending_text = (evaluation.cleaned_text if evaluation.accepted else raw) or raw
+                resolved = await self._resolve_pending_confirmation(
+                    db, pending_text, conversation_id
+                )
+                if resolved is not None:
+                    reply, provider, model, conv_id = resolved
+                    self.wake_gate.touch_window()
+                    self.record_room_utterance(pending_text, source=source)
+                    self.record_assistant_turn(reply)
+                    return AmbientDecision(
+                        heard=True,
+                        should_speak=True,
+                        reason="confirmation",
+                        cleaned_text=pending_text,
+                        reply_text=reply,
+                        provider=provider,
+                        model=model,
+                        conversation_id=conv_id,
+                        window_active=True,
+                        mode=self.mode,
+                    )
+
+            # Wake word only ("Arcanjo!"): answer instantly, no LLM round-trip.
             if evaluation.wake_only:
-                prompt_text = (
-                    "Olá Muquissi, acabaste de ser chamado pelo nome. "
-                    "Responde de forma breve e natural que estás a ouvir."
-                )
-                reply, provider, model, conv_id = await self._run_direct_reply(
-                    db=db,
-                    user_text=prompt_text,
-                    conversation_id=conversation_id,
-                    persist_user=False,
-                )
+                recent = self._last_assistant_norm
+                options = [a for a in _WAKE_ACKS if _normalize_text(a) != recent] or list(_WAKE_ACKS)
+                reply = random.choice(options)
+                provider, model = "local", "wake-ack"
+                conv_id = conversation_id or self._conversation_id
                 self.record_assistant_turn(reply)
                 return AmbientDecision(
                     heard=True,
@@ -471,7 +654,7 @@ class AmbientConversationBrain:
                 )
 
             snapshot = get_system_snapshot()
-            room_dialogue = self.format_room_context(limit=10)
+            room_dialogue = self.format_room_context(limit=14)
             social_prompt = (
                 "Estás sentado à mesa com o Carlos e outras pessoas, a acompanhar a conversa como um amigo inteligente que entende tudo o que se passa.\n"
                 "Registo recente do diálogo na sala:\n"
@@ -486,7 +669,9 @@ class AmbientConversationBrain:
                 ChatMessage(role="system", content=build_jarvis_system_prompt(snapshot)),
                 ChatMessage(role="user", content=social_prompt),
             ]
-            reply_text, provider, model, _ = await ai_manager.generate_chat(db=db, messages=messages)
+            reply_text, provider, model, _ = await ai_manager.generate_chat(
+                db=db, messages=messages, **voice_ai_overrides()
+            )
             candidate = reply_text.strip()
 
             if (
@@ -513,7 +698,7 @@ class AmbientConversationBrain:
             db.add(Message(conversation_id=conv_id, role="assistant", content=candidate))
             db.commit()
 
-            logger.info("Opinião proativa do Muquissi (%s/%s): %s", provider, model, candidate)
+            logger.info("Opinião proativa do Arcanjo (%s/%s): %s", provider, model, candidate)
             return AmbientDecision(
                 heard=True,
                 should_speak=True,
@@ -528,4 +713,13 @@ class AmbientConversationBrain:
             )
 
 
-ambient_brain = AmbientConversationBrain()
+def _build_default_brain() -> AmbientConversationBrain:
+    settings = get_settings()
+    mode = settings.voice_listening_mode.strip()
+    return AmbientConversationBrain(
+        active_window_seconds=settings.voice_active_window_seconds,
+        mode=mode if mode in VALID_LISTENING_MODES else "wake_word",  # type: ignore[arg-type]
+    )
+
+
+ambient_brain = _build_default_brain()

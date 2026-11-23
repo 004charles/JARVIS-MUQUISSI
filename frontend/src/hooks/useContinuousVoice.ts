@@ -168,7 +168,7 @@ export function useContinuousVoice({
         processor.onaudioprocess = (event) => {
           const currentState = assistantStateRef.current;
           const now = performance.now();
-          // Pause mic capture while Muquissi is processing, speaking, or within echo cooldown
+          // Pause mic capture while Arcanjo is processing, speaking, or within echo cooldown
           if (
             transcribingRef.current ||
             now < echoGuardUntilRef.current ||

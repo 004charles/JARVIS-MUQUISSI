@@ -35,7 +35,7 @@ interface InteractionDockProps {
 const MODE_LABELS: Array<{ id: ListeningMode; label: string; hint: string }> = [
   { id: "proactive", label: "Opinião Ativa", hint: "Ouve a sala e dá opiniões" },
   { id: "always_reply", label: "Responder a Tudo", hint: "Responde a cada frase" },
-  { id: "wake_word", label: "Só por Nome", hint: "Requer dizer 'Muquissi'" },
+  { id: "wake_word", label: "Só por Nome", hint: "Requer dizer 'Arcanjo'" },
 ];
 
 export function InteractionDock({
@@ -102,7 +102,7 @@ export function InteractionDock({
                     ? "ESCUTA DE SALA ATIVA — A OUVIR E A OPINAR NATURALMENTE"
                     : nativeWindowActive || listeningMode === "always_reply"
                       ? "CONVERSA ABERTA — PODE FALAR"
-                      : "PASSIVO — DIGA 'MUQUISSI' PARA CHAMAR"}
+                      : "PASSIVO — DIGA 'ARCANJO' PARA CHAMAR"}
             </span>
           </div>
           <div className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-800">
@@ -140,7 +140,7 @@ export function InteractionDock({
       {!aiError && displayedReply && (
         <div className="max-h-36 overflow-y-auto rounded-xl border border-cyan-500/25 bg-slate-950/75 px-4 py-2.5 text-xs leading-relaxed text-cyan-100 backdrop-blur-md shadow-[0_0_24px_rgba(6,182,212,0.12)]">
           <span className="mr-2 font-mono text-[10px] tracking-widest text-cyan-400">
-            MUQUISSI:
+            ARCANJO:
           </span>
           <span className="whitespace-pre-wrap">{displayedReply}</span>
           {streamingText && (
@@ -224,7 +224,7 @@ export function InteractionDock({
                 <span className="shrink-0 font-mono text-[10px] text-slate-500">{item.time}</span>
                 <span
                   className={`shrink-0 font-medium ${
-                    item.speaker === "Muquissi" ? "text-emerald-300" : "text-sky-300"
+                    item.speaker === "Arcanjo" ? "text-emerald-300" : "text-sky-300"
                   }`}
                 >
                   {item.speaker}:

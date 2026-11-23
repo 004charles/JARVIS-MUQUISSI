@@ -6,6 +6,12 @@ export type AssistantState =
   | "executing"
   | "error";
 
+export interface MusicState {
+  playing: boolean;
+  bpm: number;
+  energy: number;
+}
+
 export type FaceMood =
   | "neutral"
   | "happy"

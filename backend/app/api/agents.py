@@ -22,7 +22,7 @@ class AgentMissionRequest(BaseModel):
 
 @router.get("")
 async def list_agents() -> dict[str, object]:
-    """List the 5 specialized Muquissi agents and their authorized tool scopes."""
+    """List the 5 specialized Arcanjo agents and their authorized tool scopes."""
     return {"agents": agent_orchestrator.list_profiles()}
 
 

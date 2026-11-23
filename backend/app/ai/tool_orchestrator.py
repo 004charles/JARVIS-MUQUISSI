@@ -21,10 +21,16 @@ class ParsedToolCall:
 def extract_tool_call(text: str) -> ParsedToolCall | None:
     """Extract a `<tool_call>{...}</tool_call>` instruction if present."""
     match = _TOOL_CALL_RE.search(text)
-    if not match:
-        return None
+    if match:
+        raw_json = match.group(1)
+    else:
+        # Some models (gpt-oss) answer with the bare JSON, sometimes inside ```json fences.
+        bare = re.sub(r"^```(?:json)?\s*|\s*```$", "", text.strip())
+        if not (bare.startswith("{") and bare.endswith("}") and '"tool"' in bare):
+            return None
+        raw_json = bare
     try:
-        payload = json.loads(match.group(1))
+        payload = json.loads(raw_json)
     except json.JSONDecodeError:
         return None
     if not isinstance(payload, dict) or not payload.get("tool"):

@@ -62,7 +62,7 @@ class DesktopService:
             "[Desktop Entry]",
             "Type=Application",
             "Version=1.0",
-            "Name=Muquissi",
+            "Name=Arcanjo",
             "GenericName=Assistente Pessoal Inteligente",
             "Comment=Assistente Pessoal Inteligente com Voz, Visão e Agentes",
             f'Exec="{self.launch_script_path}"',
@@ -102,7 +102,7 @@ class DesktopService:
         return self.status()
 
     def install_desktop_entry(self) -> dict[str, object]:
-        """Install Muquissi shortcut in Ubuntu applications menu."""
+        """Install Arcanjo shortcut in Ubuntu applications menu."""
         self.applications_dir.mkdir(parents=True, exist_ok=True)
         self.desktop_entry_path.write_text(
             self.render_desktop_entry(hidden=False), encoding="utf-8"
@@ -120,7 +120,7 @@ class DesktopService:
         if not self.notifications_enabled:
             return False
 
-        clean_title = title.strip()[:120] or "Muquissi"
+        clean_title = title.strip()[:120] or "Arcanjo"
         clean_msg = message.strip()[:300]
         if not clean_msg:
             return False
@@ -137,7 +137,7 @@ class DesktopService:
         cmd = [
             notify_bin or "notify-send",
             "-a",
-            "Muquissi",
+            "Arcanjo",
             "-u",
             urgency,
             "-i",

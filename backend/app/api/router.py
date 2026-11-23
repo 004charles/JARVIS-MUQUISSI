@@ -4,6 +4,7 @@ from fastapi import APIRouter
 
 from app.api.agents import router as agents_router
 from app.api.ai import router as ai_router
+from app.api.ceu import router as ceu_router
 from app.api.conversations import router as conversations_router
 from app.api.desktop import router as desktop_router
 from app.api.health import router as health_router
@@ -30,3 +31,4 @@ api_router.include_router(productivity_router)
 api_router.include_router(vision_router)
 api_router.include_router(agents_router)
 api_router.include_router(desktop_router)
+api_router.include_router(ceu_router)

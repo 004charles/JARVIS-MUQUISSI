@@ -1,18 +1,10 @@
 import { useEffect, useRef } from "react";
+import { createHeavenSky } from "./heavenSky";
 
 export type BackdropTheme = "clouds" | "galaxy" | "aurora";
 
 interface BackdropCanvasProps {
   theme: BackdropTheme;
-}
-
-interface CloudPuff {
-  x: number;
-  y: number;
-  rx: number;
-  ry: number;
-  speed: number;
-  alpha: number;
 }
 
 interface Star {
@@ -62,14 +54,6 @@ export function BackdropCanvas({ theme }: BackdropCanvasProps) {
     };
     resize();
 
-    const clouds: CloudPuff[] = Array.from({ length: 24 }, (_, idx) => ({
-      x: Math.random() * 1.4 - 0.2,
-      y: 0.08 + (idx % 6) * 0.16 + (Math.random() - 0.5) * 0.08,
-      rx: 150 + Math.random() * 240,
-      ry: 55 + Math.random() * 85,
-      speed: 0.00008 + Math.random() * 0.00016,
-      alpha: 0.45 + Math.random() * 0.42,
-    }));
 
     const stars: Star[] = Array.from({ length: 150 }, () => ({
       x: Math.random(),
@@ -97,51 +81,9 @@ export function BackdropCanvas({ theme }: BackdropCanvasProps) {
 
     let tick = 0;
 
-    const renderClouds = () => {
-      const skyGrad = ctx.createLinearGradient(0, 0, 0, height);
-      skyGrad.addColorStop(0, "#e6f2ff");
-      skyGrad.addColorStop(0.45, "#f7fbff");
-      skyGrad.addColorStop(1, "#ffffff");
-      ctx.fillStyle = skyGrad;
-      ctx.fillRect(0, 0, width, height);
-
-      // Soft luminous atmospheric halo in the center
-      const sunHalo = ctx.createRadialGradient(
-        width * 0.5,
-        height * 0.48,
-        20,
-        width * 0.5,
-        height * 0.48,
-        Math.min(width, height) * 0.55,
-      );
-      sunHalo.addColorStop(0, "rgba(255, 255, 255, 0.96)");
-      sunHalo.addColorStop(0.55, "rgba(186, 230, 253, 0.28)");
-      sunHalo.addColorStop(1, "rgba(255, 255, 255, 0)");
-      ctx.fillStyle = sunHalo;
-      ctx.fillRect(0, 0, width, height);
-
-      // Volumetric drifting clouds
-      for (const puff of clouds) {
-        puff.x += puff.speed;
-        if (puff.x > 1.25) puff.x = -0.25;
-
-        const cx = puff.x * width;
-        const cy = puff.y * height + Math.sin(tick * 0.008 + puff.rx) * 6;
-
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.scale(1, puff.ry / puff.rx);
-        const grad = ctx.createRadialGradient(0, 0, puff.rx * 0.1, 0, 0, puff.rx);
-        grad.addColorStop(0, `rgba(255, 255, 255, ${puff.alpha})`);
-        grad.addColorStop(0.55, `rgba(240, 249, 255, ${puff.alpha * 0.65})`);
-        grad.addColorStop(1, "rgba(224, 242, 254, 0)");
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(0, 0, puff.rx, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      }
-    };
+    // Heavenly sky for the Arcanjo (blue zenith, golden glow, light rays, lit clouds)
+    const heaven = createHeavenSky();
+    const renderClouds = () => heaven(ctx, width, height, performance.now() / 1000);
 
     const renderGalaxy = () => {
       const bgGrad = ctx.createRadialGradient(
@@ -237,7 +179,7 @@ export function BackdropCanvas({ theme }: BackdropCanvasProps) {
       animationId = window.requestAnimationFrame(render);
     };
 
-    animationId = window.requestAnimationFrame(render);
+    render(); // draw the first frame immediately (no blank flash)
     window.addEventListener("resize", resize);
 
     return () => {

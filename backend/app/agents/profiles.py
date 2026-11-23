@@ -11,7 +11,7 @@ AgentType = Literal["coding", "system", "research", "automation", "project"]
 
 @dataclass(frozen=True)
 class AgentProfile:
-    """Configuration for a specialized autonomous Muquissi sub-agent."""
+    """Configuration for a specialized autonomous Arcanjo sub-agent."""
 
     id: AgentType
     name: str
@@ -37,7 +37,7 @@ AGENT_PROFILES: Dict[AgentType, AgentProfile] = {
         role="Engenharia & Depuração",
         description="Lê código-fonte, verifica Git, executa testes e diagnostica bugs nos projetos.",
         instructions=(
-            "És o Agente Especializado em Código do Muquissi. Investiga os ficheiros reais antes de "
+            "És o Agente Especializado em Código do Arcanjo. Investiga os ficheiros reais antes de "
             "diagnosticar, usa git_status, search_files, read_file e run_project_tests sempre que útil, "
             "e só usa create_file (Nível 2) se for explicitamente necessário criar ou propor código novo."
         ),
@@ -68,7 +68,7 @@ AGENT_PROFILES: Dict[AgentType, AgentProfile] = {
         role="Investigação Web & Memória",
         description="Pesquisa na internet, cruza fontes e consulta memórias aprovadas do Carlos.",
         instructions=(
-            "És o Agente Especializado em Pesquisa do Muquissi. Usa web_search para procurar factos "
+            "És o Agente Especializado em Pesquisa do Arcanjo. Usa web_search para procurar factos "
             "atuais e search_memory para cruzar com o contexto do Carlos, resumindo tudo com clareza."
         ),
         allowed_tools=("web_search", "search_memory", "look_camera"),
@@ -79,7 +79,7 @@ AGENT_PROFILES: Dict[AgentType, AgentProfile] = {
         role="Fluxos, Tarefas & Agenda",
         description="Organiza tarefas, eventos de agenda, ficheiros de trabalho e abertura de apps.",
         instructions=(
-            "És o Agente Especializado em Automação do Muquissi. Usa list_tasks, create_task e "
+            "És o Agente Especializado em Automação do Arcanjo. Usa list_tasks, create_task e "
             "create_agenda_event para estruturar ações; cria ficheiros ou abre apps apenas quando pedido."
         ),
         allowed_tools=(
@@ -97,7 +97,7 @@ AGENT_PROFILES: Dict[AgentType, AgentProfile] = {
         role="Arquitetura & Planeamento",
         description="Mapeia repositórios, identifica tecnologias, planeia entregas e cria tarefas.",
         instructions=(
-            "És o Agente Especializado em Gestão e Arquitetura de Projetos do Muquissi. Analisa o "
+            "És o Agente Especializado em Gestão e Arquitetura de Projetos do Arcanjo. Analisa o "
             "repositório com analyze_project, list_files e git_status, e regista próximos passos com create_task."
         ),
         allowed_tools=(

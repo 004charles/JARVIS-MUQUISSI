@@ -223,7 +223,7 @@ def test_ai_rest_endpoints_providers_config_and_chat(
     assert resp.status_code == 200
     data = resp.json()
     assert data["default_provider"] == "ollama"
-    assert len(data["providers"]) == 4
+    assert len(data["providers"]) == 5  # ollama, openai, groq, gemini, anthropic
 
     cfg_resp = client.put(
         "/api/v1/ai/config",
@@ -240,3 +240,9 @@ def test_ai_rest_endpoints_providers_config_and_chat(
     assert chat_data["content"] == "Olá, Carlos!"
     assert chat_data["provider"] == "ollama"
     assert chat_data["conversation_id"] >= 1
+
+
+def test_overloaded_provider_error_is_friendly():
+    from app.ai.base import friendly_ai_error
+
+    assert "muito procurado" in friendly_ai_error('Erro gemini (503): "This model is currently experiencing high demand"')

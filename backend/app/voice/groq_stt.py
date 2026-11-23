@@ -55,6 +55,8 @@ class GroqSTTProvider(STTProvider):
             "language": language.split("-")[0],
             "response_format": "verbose_json",
             "temperature": "0",
+            # Ajuda o Whisper a escrever o nome corretamente (ativa a palavra de chamada).
+            "prompt": "Arcanjo, Carlos.",
         }
 
         try:

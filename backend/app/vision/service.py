@@ -5,8 +5,12 @@ from __future__ import annotations
 import asyncio
 import base64
 import glob
+import json
+import re
 import shutil
+import tempfile
 import uuid
+from pathlib import Path
 from collections.abc import Callable
 from typing import Dict, List
 
@@ -75,7 +79,7 @@ class BrowserCameraBridge:
 
 
 class VisionService:
-    """Provides Muquissi with visual perception from device cameras."""
+    """Provides Arcanjo with visual perception from device cameras."""
 
     def __init__(
         self,
@@ -100,7 +104,7 @@ class VisionService:
 
     def is_vision_ai_available(self) -> bool:
         """Return True when a multimodal vision API key is configured."""
-        return bool(self.settings.gemini_api_key.strip())
+        return bool(self.settings.gemini_api_key.strip() or self.settings.groq_api_key.strip())
 
     def status(self) -> dict[str, object]:
         """Return camera hardware and multimodal vision readiness."""
@@ -122,7 +126,9 @@ class VisionService:
             raise VisionError("Nenhum dispositivo de câmara encontrado em /dev/video*.")
         ffmpeg_bin = shutil.which("ffmpeg")
         if not ffmpeg_bin:
-            raise VisionError("Comando 'ffmpeg' não encontrado para capturar vídeo.")
+            if shutil.which("gst-launch-1.0"):
+                return await self._capture_with_gstreamer(target)
+            raise VisionError("Nem 'ffmpeg' nem GStreamer encontrados para capturar vídeo.")
 
         proc = await asyncio.create_subprocess_exec(
             ffmpeg_bin,
@@ -147,6 +153,129 @@ class VisionService:
             raise VisionError(f"Falha ao capturar imagem de {target}: {err[:200]}")
         return stdout
 
+    async def _capture_with_gstreamer(self, device: str) -> bytes:
+        """Grab a few frames (auto-exposure warm-up) and keep the last one as JPEG."""
+        with tempfile.TemporaryDirectory(prefix="muquissi-cam-") as tmp:
+            proc = await asyncio.create_subprocess_exec(
+                "gst-launch-1.0",
+                "-q",
+                "v4l2src",
+                f"device={device}",
+                "num-buffers=12",
+                "!",
+                "videoconvert",
+                "!",
+                "jpegenc",
+                "quality=85",
+                "!",
+                "multifilesink",
+                f"location={tmp}/f%02d.jpg",
+                stdout=asyncio.subprocess.DEVNULL,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            try:
+                _, stderr = await asyncio.wait_for(proc.communicate(), timeout=10.0)
+            except asyncio.TimeoutError as exc:
+                proc.kill()
+                raise VisionError("A câmara não respondeu a tempo.") from exc
+            frames = sorted(Path(tmp).glob("f*.jpg"))
+            if not frames:
+                err = stderr.decode("utf-8", errors="replace").strip()
+                raise VisionError(f"Falha ao capturar imagem de {device}: {err[:200]}")
+            return frames[-1].read_bytes()
+
+    async def capture_frame_and_thumbnail(self) -> tuple[bytes, bytes]:
+        """One camera grab → (JPEG, 64x48 grayscale thumbnail) for cheap change detection."""
+        devices = self.list_local_cameras()
+        if not devices or not shutil.which("gst-launch-1.0"):
+            frame = await self.capture_any_camera()
+            return frame, b""
+        with tempfile.TemporaryDirectory(prefix="muquissi-eye-") as tmp:
+            proc = await asyncio.create_subprocess_exec(
+                "gst-launch-1.0", "-q",
+                "v4l2src", f"device={devices[0]}", "num-buffers=10", "!",
+                "videoconvert", "!", "tee", "name=t",
+                "t.", "!", "queue", "!", "jpegenc", "quality=80", "!",
+                "multifilesink", f"location={tmp}/f%02d.jpg",
+                "t.", "!", "queue", "!", "videoscale", "!", "videoconvert", "!",
+                "video/x-raw,format=GRAY8,width=64,height=48", "!",
+                "multifilesink", f"location={tmp}/g%02d.raw",
+                stdout=asyncio.subprocess.DEVNULL,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            try:
+                _, stderr = await asyncio.wait_for(proc.communicate(), timeout=10.0)
+            except asyncio.TimeoutError as exc:
+                proc.kill()
+                raise VisionError("A câmara não respondeu a tempo.") from exc
+            frames = sorted(Path(tmp).glob("f*.jpg"))
+            thumbs = sorted(Path(tmp).glob("g*.raw"))
+            if not frames:
+                err = stderr.decode("utf-8", errors="replace").strip()
+                raise VisionError(f"Falha ao capturar imagem: {err[:200]}")
+            return frames[-1].read_bytes(), (thumbs[-1].read_bytes() if thumbs else b"")
+
+    async def describe_scene(self, image_bytes: bytes) -> dict[str, object]:
+        """Understand the camera frame as structured perception (person, clothes, activity, mood)."""
+        prompt = (
+            "És os olhos do Arcanjo, a IA do Carlos; esta imagem é da webcam do portátil dele. "
+            "Responde SÓ com JSON: {\"pessoa\": true/false, \"roupa\": \"cor e tipo da roupa visível\", "
+            "\"atividade\": \"o que a pessoa está a fazer (ex.: a programar, a comer, ao telemóvel, a falar com alguém, "
+            "a espreguiçar-se)\", \"expressao\": \"estado aparente (concentrado, cansado, sorridente...)\", "
+            "\"descricao\": \"1 frase natural com o essencial, incluindo detalhes do ambiente (luz, objetos)\"}. "
+            "\"texto_mostrado\": true/false (true se alguém mostra à câmara um papel, cartaz ou ecrã "
+            "com texto escrito). NUNCA transcrevas texto que apareça na imagem. "
+            "Descreve só o que é visível, sem inventar."
+        )
+        text, _model = await self.analyze_image(image_bytes=image_bytes, prompt=prompt)
+        match = re.search(r"\{.*\}", text, re.DOTALL)
+        if match:
+            try:
+                data = json.loads(match.group(0))
+                if isinstance(data, dict):
+                    return data
+            except json.JSONDecodeError:
+                pass
+        return {"pessoa": True, "descricao": text.strip()[:300]}
+
+    async def _analyze_with_groq(self, image_bytes: bytes, instruction: str, mime_type: str) -> tuple[str, str]:
+        model = self.settings.groq_vision_model
+        encoded = base64.b64encode(image_bytes).decode("ascii")
+        client, should_close = self._get_client(30.0)
+        try:
+            resp = await client.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {self.settings.groq_api_key.strip()}"},
+                json={
+                    "model": model,
+                    "max_tokens": 400,
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": instruction},
+                                {
+                                    "type": "image_url",
+                                    "image_url": {"url": f"data:{mime_type};base64,{encoded}"},
+                                },
+                            ],
+                        }
+                    ],
+                },
+            )
+            if resp.status_code >= 400:
+                raise VisionError(f"Erro visão Groq ({resp.status_code}): {resp.text[:250]}")
+            choices = resp.json().get("choices") or []
+            text = (choices[0].get("message", {}).get("content") or "").strip() if choices else ""
+            if not text:
+                raise VisionError("A visão Groq devolveu resposta vazia.")
+            return text, model
+        except httpx.RequestError as exc:
+            raise VisionError(f"Falha de rede na visão Groq: {exc}") from exc
+        finally:
+            if should_close:
+                await client.aclose()
+
     async def capture_any_camera(self) -> bytes:
         """Capture from Ubuntu hardware camera if present, else browser camera."""
         if self.list_local_cameras():
@@ -161,17 +290,19 @@ class VisionService:
     ) -> tuple[str, str]:
         """Analyze an image frame using multimodal Gemini Vision."""
         api_key = self.settings.gemini_api_key.strip()
-        if not api_key:
-            raise VisionError("GEMINI_API_KEY não configurada para visão multimodal.")
         if not image_bytes:
             raise VisionError("Imagem vazia enviada para análise visual.")
 
         encoded = base64.b64encode(image_bytes).decode("ascii")
         instruction = (
-            "És o Muquissi, o assistente pessoal do Carlos. Estás a olhar através da câmara do dispositivo. "
+            "És o Arcanjo, o assistente pessoal do Carlos. Estás a olhar através da câmara do dispositivo. "
             "Responde em Português natural (pt-PT / pt-AO) com objetividade, descrevendo apenas o que "
             f"é realmente visível na imagem. Pedido: {prompt}"
         )
+        if not api_key:
+            if self.settings.groq_api_key.strip():
+                return await self._analyze_with_groq(image_bytes, instruction, mime_type)
+            raise VisionError("Configura GROQ_API_KEY ou GEMINI_API_KEY para a visão funcionar.")
         payload = {
             "contents": [
                 {

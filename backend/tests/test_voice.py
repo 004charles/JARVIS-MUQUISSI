@@ -165,7 +165,7 @@ def test_voice_synthesize_falls_back_to_edge_when_gemini_quota_exceeded(
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "audio/mpeg"
     assert resp.headers["x-voice-engine"] == "edge-neural-tts"
-    assert resp.headers["x-voice-name"] == "Muquissi-Grave"
+    assert resp.headers["x-voice-name"] == voice_api.DEFAULT_UNLIMITED_VOICE
 
 
 def test_voice_transcribe_endpoint_and_stt_provider(client: TestClient) -> None:

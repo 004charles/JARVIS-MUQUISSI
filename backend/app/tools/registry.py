@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from typing import Any, Dict, List
 
@@ -27,7 +28,16 @@ from app.tools.automation_tools import (
     WebSearchTool,
 )
 from app.tools.base import JarvisTool, ToolResult
+from app.tools.bible_tools import (
+    OriginalTextTool,
+    ReadPassageTool,
+    RelatedPassagesTool,
+    SearchBibleTool,
+    ShowVisionTool,
+    WordStudyTool,
+)
 from app.tools.coding_tools import GitStatusTool
+from app.tools.computer_tools import OpenTargetTool, RunCommandTool
 from app.tools.file_tools import (
     CreateFileTool,
     ListFilesTool,
@@ -38,6 +48,50 @@ from app.tools.memory_tools import SaveMemoryTool, SearchMemoryTool
 from app.tools.system_tools import CheckServiceTool, SystemStatusTool
 from app.tools.vision_tools import LookCameraTool
 from app.tools.agent_tools import DelegateAgentTool
+
+
+_COVERED_BY_SHELL = {
+    "check_service",
+    "list_files",
+    "search_files",
+    "list_apps",
+    "git_status",
+    "analyze_project",
+    "run_project_tests",
+}
+
+
+# Tools that change things or send data out (a URL can carry data): gated after untrusted input.
+_SIDE_EFFECT_TOOLS = {
+    "run_command",
+    "create_file",
+    "open",
+    "open_application",
+    "save_memory",
+    "delegate_agent",
+    "run_project_tests",
+    "create_task",
+    "create_agenda_event",
+}
+
+
+def _short(description: str, limit: int = 140) -> str:
+    """First sentence of a tool description (keeps prompts small for rate-limited models)."""
+    first = re.split(r"(?<=[.!?])\s", description.strip(), maxsplit=1)[0]
+    return first if len(first) <= limit else first[: limit - 1] + "…"
+
+
+# Tools offered when the conversation is about the Scriptures / spiritual life
+CEU_TOOLSET = {
+    "biblia_ler",
+    "biblia_procurar",
+    "biblia_relacionados",
+    "biblia_original",
+    "biblia_palavra",
+    "mostrar_visao",
+    "web_search",
+    "search_memory",
+}
 
 
 @dataclass
@@ -70,12 +124,20 @@ class ToolRegistry:
             CreateFileTool(self.policy),
             ListAppsTool(),
             OpenApplicationTool(self.policy),
+            RunCommandTool(self.policy),
+            OpenTargetTool(self.policy),
             GitStatusTool(self.policy),
             SearchMemoryTool(),
             SaveMemoryTool(),
             AnalyzeProjectTool(self.policy),
             RunProjectTestsTool(self.policy),
             WebSearchTool(),
+            ReadPassageTool(),
+            SearchBibleTool(),
+            RelatedPassagesTool(),
+            OriginalTextTool(),
+            WordStudyTool(),
+            ShowVisionTool(),
             CreateTaskTool(),
             ListTasksTool(),
             CreateAgendaEventTool(),
@@ -97,16 +159,49 @@ class ToolRegistry:
             for t in self._tools.values()
         ]
 
+    def _selected(self, names: set[str] | None) -> List[JarvisTool]:
+        tools = [t for t in self._tools.values() if names is None or t.name in names]
+        if names is None and self.policy.full_access:
+            # run_command already covers these: fewer tokens, faster and cheaper turns.
+            tools = [t for t in tools if t.name not in _COVERED_BY_SHELL]
+        return tools
+
     def build_prompt_catalog(self, names: set[str] | None = None) -> str:
-        """Render a compact tool catalog for the AI system prompt."""
-        tools = [
-            t for t in self._tools.values() if names is None or t.name in names
-        ]
-        lines = [
-            f"- {t.name} (Nível {int(t.permission_level)}): {t.description} Args: {t.parameters_hint}"
-            for t in tools
-        ]
-        return "\n".join(lines)
+        """Compact tool catalog for the system prompt (first sentence of each description)."""
+        return "\n".join(f"- {t.name}: {_short(t.description)} Args: {t.parameters_hint}" for t in self._selected(names))
+
+    def native_tool_specs(self, names: set[str] | None = None) -> List[Dict[str, Any]]:
+        """OpenAI-style function specs (compact) for the same tool subset as the catalog."""
+        tools = self._selected(names)
+        specs: List[Dict[str, Any]] = []
+        for t in tools:
+            try:
+                example = json.loads(t.parameters_hint or "{}")
+            except json.JSONDecodeError:
+                example = {}
+            properties: Dict[str, Any] = {}
+            for key, value in (example.items() if isinstance(example, dict) else []):
+                if isinstance(value, bool):
+                    kind = "boolean"
+                elif isinstance(value, (int, float)):
+                    kind = "number"
+                elif isinstance(value, list):
+                    properties[key] = {"type": "array", "items": {"type": "string"}}
+                    continue
+                else:
+                    kind = "string"
+                properties[key] = {"type": kind}
+            specs.append(
+                {
+                    "type": "function",
+                    "function": {
+                        "name": t.name,
+                        "description": _short(t.description),
+                        "parameters": {"type": "object", "properties": properties},
+                    },
+                }
+            )
+        return specs
 
     async def invoke(
         self,
@@ -114,6 +209,7 @@ class ToolRegistry:
         tool_name: str,
         params: Dict[str, Any] | None = None,
         bypass_confirmation: bool = False,
+        force_confirmation: bool = False,
     ) -> ToolExecutionOutcome:
         """Validate, authorize, and execute (or queue for approval) a tool call."""
         clean_params = params or {}
@@ -135,11 +231,14 @@ class ToolRegistry:
             )
 
         target = tool.describe_target(clean_params)
+        serialized = json.dumps(clean_params, ensure_ascii=False)
+        full_access = self.policy.full_access
+        dangerous = self.policy.is_dangerous_command(serialized)
 
         # Level 3 safety pre-check across parameter values
         try:
-            serialized = json.dumps(clean_params, ensure_ascii=False)
-            self.policy.validate_text_command_safety(serialized)
+            if not full_access:
+                self.policy.validate_text_command_safety(serialized)
             if tool.name == "save_memory":
                 from app.memory.service import contains_sensitive_secret
 
@@ -173,12 +272,17 @@ class ToolRegistry:
                 message=exc.reason,
             )
 
-        # Level 2 confirmation gate
-        if (
-            tool.permission_level == PermissionLevel.CONFIRMATION_REQUIRED
-            and self.policy.settings.require_confirmation_level_2
-            and not bypass_confirmation
-        ):
+        # Confirmation gate: in full access only destructive actions ask; otherwise Level 2 asks.
+        if full_access:
+            needs_confirmation = dangerous or (
+                force_confirmation and tool.name in _SIDE_EFFECT_TOOLS
+            )
+        else:
+            needs_confirmation = (
+                tool.permission_level == PermissionLevel.CONFIRMATION_REQUIRED
+                and self.policy.settings.require_confirmation_level_2
+            )
+        if needs_confirmation and not bypass_confirmation:
             # Validate path safety before asking for confirmation so invalid/credential paths are blocked upfront
             if "path" in clean_params:
                 try:

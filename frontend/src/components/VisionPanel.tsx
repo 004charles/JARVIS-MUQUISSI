@@ -80,9 +80,9 @@ export function VisionPanel({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h3 className="text-sm font-semibold text-white">Visão &amp; Olhos do Muquissi</h3>
+          <h3 className="text-sm font-semibold text-white">Visão &amp; Olhos do Arcanjo</h3>
           <p className="text-xs text-slate-400">
-            Liga a câmara do teu dispositivo (ou webcam Ubuntu) para o Muquissi ver em tempo real.
+            Liga a câmara do teu dispositivo (ou webcam Ubuntu) para o Arcanjo ver em tempo real.
           </p>
         </div>
 
@@ -182,8 +182,8 @@ export function VisionPanel({
             <Eye className="h-8 w-8 opacity-40" />
             <p className="text-xs">
               {status && status.local_cameras.length > 0
-                ? "Câmara do navegador desligada — o Muquissi ainda pode usar a webcam Ubuntu."
-                : "Clica em \"Ligar Câmara\" para dar olhos ao Muquissi."}
+                ? "Câmara do navegador desligada — o Arcanjo ainda pode usar a webcam Ubuntu."
+                : "Clica em \"Ligar Câmara\" para dar olhos ao Arcanjo."}
             </p>
           </div>
         )}
@@ -201,7 +201,7 @@ export function VisionPanel({
           type="text"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="O que queres que o Muquissi procure ou analise?"
+          placeholder="O que queres que o Arcanjo procure ou analise?"
           className="flex-1 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white placeholder:text-slate-400 focus:border-sky-400/60 focus:outline-none"
         />
         <button
@@ -217,7 +217,7 @@ export function VisionPanel({
       {description && (
         <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-3">
           <div className="mb-1 flex items-center justify-between text-[11px] text-emerald-300">
-            <span>O que o Muquissi viu</span>
+            <span>O que o Arcanjo viu</span>
             {usedModel && <span className="font-mono opacity-80">{usedModel}</span>}
           </div>
           <p className="text-xs leading-relaxed text-slate-100">{description}</p>

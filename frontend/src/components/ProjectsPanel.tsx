@@ -66,7 +66,7 @@ export function ProjectsPanel() {
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Nome (ex: Muquissi)"
+          placeholder="Nome (ex: Arcanjo)"
           className="rounded-xl border border-cyan-500/25 bg-slate-900/80 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:outline-none"
         />
         <input

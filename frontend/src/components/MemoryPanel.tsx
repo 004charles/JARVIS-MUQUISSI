@@ -167,7 +167,7 @@ export function MemoryPanel() {
         <div className="max-h-60 space-y-2 overflow-y-auto pr-1 text-xs">
           {items.length === 0 ? (
             <p className="text-slate-400">
-              Nenhuma memória encontrada. O Muquissi pede confirmação antes de guardar factos novos.
+              Nenhuma memória encontrada. O Arcanjo pede confirmação antes de guardar factos novos.
             </p>
           ) : (
             items.map((item) => (

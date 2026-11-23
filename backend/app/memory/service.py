@@ -10,7 +10,15 @@ from sqlalchemy.orm import Session
 
 from app.database.models import ActionLog, MemoryEntry
 
-VALID_MEMORY_CATEGORIES = {"long_term", "project", "preference", "operational"}
+VALID_MEMORY_CATEGORIES = {
+    "long_term",
+    "project",
+    "preference",
+    "operational",
+    "person",  # pessoas na vida do Carlos
+    "episode",  # resumo de uma conversa passada
+}
+_PROFILE_CATEGORIES = ("long_term", "preference", "person")
 
 _SECRET_PATTERNS = (
     re.compile(r"\bsk-[A-Za-z0-9_-]{16,}"),
@@ -159,6 +167,30 @@ class MemoryService:
 
         scored.sort(key=lambda pair: (pair[0], pair[1]), reverse=True)
         return [item for _hits, _neg_idx, item in scored[:limit]]
+
+    def build_context_memories(self, db: Session, query: str) -> List[MemoryEntry]:
+        """Human-like recall: what's relevant now + who Carlos is + the last few conversations."""
+        chosen: Dict[int, MemoryEntry] = {}
+        for item in self.search_relevant_memories(db, query=query, limit=6):
+            if item.category != "episode":
+                chosen.setdefault(item.id, item)
+        profile_stmt = (
+            select(MemoryEntry)
+            .where(MemoryEntry.approved.is_(True), MemoryEntry.category.in_(_PROFILE_CATEGORIES))
+            .order_by(MemoryEntry.id.desc())
+            .limit(12)
+        )
+        for item in db.scalars(profile_stmt).all():
+            chosen.setdefault(item.id, item)
+        episode_stmt = (
+            select(MemoryEntry)
+            .where(MemoryEntry.approved.is_(True), MemoryEntry.category == "episode")
+            .order_by(MemoryEntry.id.desc())
+            .limit(3)
+        )
+        for item in reversed(list(db.scalars(episode_stmt).all())):
+            chosen.setdefault(item.id, item)
+        return list(chosen.values())
 
     def list_operational_history(self, db: Session, limit: int = 25) -> List[Dict[str, object]]:
         """Expose recent executed system actions as operational memory."""

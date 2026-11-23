@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useRef } from "react";
-import type { AssistantState, FaceMood } from "../types/api";
+import type { AssistantState, FaceMood, MusicState } from "../types/api";
 import type { BackdropTheme } from "./BackdropCanvas";
 import { MuquissiFace } from "./MuquissiFace";
 
@@ -8,6 +8,7 @@ interface JarvisCoreWheelProps {
   state: AssistantState;
   mood?: FaceMood;
   speechEnergy?: number;
+  music?: MusicState;
   theme?: BackdropTheme;
   onCoreClick?: () => void;
 }
@@ -100,6 +101,7 @@ export function JarvisCoreWheel({
   state,
   mood = "neutral",
   speechEnergy = 0,
+  music,
   theme = "clouds",
   onCoreClick,
 }: JarvisCoreWheelProps) {
@@ -294,11 +296,11 @@ export function JarvisCoreWheel({
           />
         </motion.svg>
 
-        {/* Foreground Luminous White Cloud Sphere = Muquissi Dynamic Face */}
+        {/* Foreground Luminous White Cloud Sphere = Arcanjo Dynamic Face */}
         <motion.button
           type="button"
           onClick={onCoreClick}
-          title={`Muquissi · ${meta.label}`}
+          title={`Arcanjo · ${meta.label}`}
           animate={{
             scale: isSpeaking
               ? [1, 1.07, 0.98, 1.06, 1]
@@ -318,7 +320,7 @@ export function JarvisCoreWheel({
             isLight ? "border-sky-400/60" : "border-cyan-300/65"
           }`}
         >
-          <MuquissiFace mood={mood} state={state} speechEnergy={speechEnergy} />
+          <MuquissiFace mood={mood} state={state} speechEnergy={speechEnergy} music={music} />
         </motion.button>
       </div>
     </div>

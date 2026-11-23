@@ -6,11 +6,13 @@ import type {
   ChatMessageItem,
   FaceMood,
   ListeningMode,
+  MusicState,
   NotificationItem,
   PendingApprovalItem,
   SystemSnapshot,
 } from "../types/api";
 import type { JarvisEvent } from "../types/events";
+import type { CeuVision } from "../services/ceu";
 
 interface UseJarvisSocketOptions {
   onStreamStart?: () => void;
@@ -24,6 +26,9 @@ interface UseJarvisSocketResult {
   connected: boolean;
   assistantState: AssistantState;
   faceMood: FaceMood;
+  music: MusicState;
+  vision: CeuVision | null;
+  clearVision: () => void;
   systemUpdate: SystemSnapshot | null;
   messages: ChatMessageItem[];
   latestReply: ChatMessageItem | null;
@@ -53,6 +58,8 @@ export function useJarvisSocket(
   const [connected, setConnected] = useState(false);
   const [assistantState, setAssistantState] = useState<AssistantState>("idle");
   const [faceMood, setFaceMood] = useState<FaceMood>("neutral");
+  const [music, setMusic] = useState<MusicState>({ playing: false, bpm: 0, energy: 0 });
+  const [vision, setVision] = useState<CeuVision | null>(null);
   const [systemUpdate, setSystemUpdate] = useState<SystemSnapshot | null>(null);
   const [messages, setMessages] = useState<ChatMessageItem[]>([]);
   const [latestReply, setLatestReply] = useState<ChatMessageItem | null>(null);
@@ -196,6 +203,14 @@ export function useJarvisSocket(
             ) {
               setListeningMode(parsed.payload.listening_mode);
             }
+          } else if (parsed.type === "ceu.vision") {
+            setVision(parsed.payload as unknown as CeuVision);
+          } else if (parsed.type === "music.state") {
+            setMusic({
+              playing: Boolean(parsed.payload.playing),
+              bpm: Number(parsed.payload.bpm) || 0,
+              energy: Number(parsed.payload.energy) || 0,
+            });
           } else if (parsed.type === "voice.ambient.heard") {
             if (Array.isArray(parsed.payload.recent_heard)) {
               setRecentHeard(parsed.payload.recent_heard as AmbientHeardItem[]);
@@ -266,6 +281,9 @@ export function useJarvisSocket(
     connected,
     assistantState,
     faceMood,
+    music,
+    vision,
+    clearVision: () => setVision(null),
     systemUpdate,
     messages,
     latestReply,

@@ -22,6 +22,10 @@ from app.ai.prompts import (
     remember_greeting,
 )
 from app.ai.tool_orchestrator import extract_tool_call
+from app.ai.agent_loop import choose_toolset, describe_pending_action, run_agent_turn
+from app.ai.base import friendly_ai_error
+from app.brain import learning
+from app.brain.mind import mind
 from app.api import api_router
 from app.core.config import PROJECT_ROOT, get_settings
 from app.core.events import AssistantState, EventType, JarvisEvent, event_bus
@@ -85,6 +89,16 @@ async def _handle_ws_chat(
     model_override: str | None,
 ) -> None:
     """Persist user message, stream AI reply over WebSocket, and persist assistant turn."""
+    from app.security.guard import rate_limiter
+
+    client_key = f"ws:{websocket.client.host if websocket.client else 'local'}"
+    allowed, limit_message = rate_limiter.check(client_key)
+    if not allowed:
+        await event_bus.send_to(
+            websocket,
+            JarvisEvent(type="chat.stream.end", payload={"conversation_id": conversation_id, "role": "assistant", "content": limit_message, "speak": True}),
+        )
+        return
     db, gen = _open_ws_session(app)
     accumulated: list[str] = []
     used_provider = ""
@@ -103,6 +117,7 @@ async def _handle_ws_chat(
             db.add(conversation)
             db.commit()
             db.refresh(conversation)
+            learning.spawn(learning.remember_previous_conversation(conversation.id))
 
         conv_id = conversation.id
         user_msg = Message(conversation_id=conv_id, role="user", content=user_text)
@@ -110,9 +125,20 @@ async def _handle_ws_chat(
         db.commit()
 
         await event_bus.set_state(AssistantState.PROCESSING, reason="ai_streaming")
+        turn_tools = choose_toolset([ChatMessage(role="user", content=user_text)])
+        if model_override is None:
+            from app.ai.routing import route_model
+
+            model_override = route_model(
+                user_text, provider_override or str(ai_manager.get_active_config(db)["default_provider"])
+            )
         context_messages = ai_manager.build_conversation_messages(
-            db, conv_id, tools_catalog=tool_registry.build_prompt_catalog()
+            db, conv_id, tools_catalog=tool_registry.build_prompt_catalog(turn_tools)
         )
+
+        from app.security.guard import guard_messages
+
+        context_messages = guard_messages(context_messages, user_text)
 
         # Buffer leading characters briefly to detect <tool_call> before streaming text
         prefix_buffer: list[str] = []
@@ -124,6 +150,7 @@ async def _handle_ws_chat(
             messages=context_messages,
             provider_override=provider_override,
             model_override=model_override,
+            tools=tool_registry.native_tool_specs(turn_tools),
         ):
             used_provider = chunk.provider
             used_model = chunk.model
@@ -186,28 +213,39 @@ async def _handle_ws_chat(
                 outcome = await tool_registry.invoke(
                     db=db, tool_name=parsed_call.tool, params=parsed_call.args
                 )
-                if outcome.status == "awaiting_confirmation":
-                    full_text = outcome.message
-                elif outcome.status == "blocked":
-                    full_text = f"Operação bloqueada por segurança: {outcome.message}"
+                if outcome.status == "awaiting_confirmation" and outcome.approval is not None:
+                    full_text = describe_pending_action(outcome.approval)
                 else:
-                    tool_summary_payload = (
-                        outcome.result.model_dump()
-                        if outcome.result
-                        else {"success": False, "error": outcome.message}
-                    )
+                    if outcome.status == "blocked":
+                        tool_summary_payload: object = {"bloqueado": True, "motivo": outcome.message}
+                    elif outcome.result is not None:
+                        tool_summary_payload = outcome.result.model_dump()
+                    else:
+                        tool_summary_payload = {"success": False, "error": outcome.message}
                     followup_messages = [
                         *context_messages,
                         ChatMessage(role="assistant", content=raw_tool_text),
                         ChatMessage(
                             role="user",
                             content=(
-                                f"Resultado real da ferramenta '{parsed_call.tool}': "
-                                f"{tool_summary_payload}. "
-                                "Responde agora ao Carlos em português natural e conciso com base apenas nesse resultado real."
+                                f"[Resultado real de '{parsed_call.tool}']: {tool_summary_payload}\n"
+                                "Se ainda faltar algo para cumprir o pedido, chama a próxima ferramenta; "
+                                "senão responde ao Carlos em português natural, só com base nos resultados reais."
                             ),
                         ),
                     ]
+                    # Keep acting (several tools in a row) until the request is done.
+                    turn = await run_agent_turn(
+                        db=db,
+                        messages=followup_messages,
+                        provider_override=provider_override,
+                        model_override=model_override,
+                        manager=ai_manager,
+                        registry=tool_registry,
+                    )
+                    used_provider = turn.provider or used_provider
+                    used_model = turn.model or used_model
+                    full_text = turn.reply
                     await event_bus.set_state(AssistantState.SPEAKING, reason="ai_streaming")
                     await event_bus.send_to(
                         websocket,
@@ -222,21 +260,13 @@ async def _handle_ws_chat(
                         ),
                     )
                     stream_started = True
-                    async for post_chunk in ai_manager.stream_chat(
-                        db=db,
-                        messages=followup_messages,
-                        provider_override=provider_override,
-                        model_override=model_override,
-                    ):
-                        accumulated.append(post_chunk.delta)
-                        await event_bus.send_to(
-                            websocket,
-                            JarvisEvent(
-                                type="chat.stream.delta",
-                                payload={"conversation_id": conv_id, "delta": post_chunk.delta},
-                            ),
-                        )
-                    full_text = "".join(accumulated).strip()
+                    await event_bus.send_to(
+                        websocket,
+                        JarvisEvent(
+                            type="chat.stream.delta",
+                            payload={"conversation_id": conv_id, "delta": full_text},
+                        ),
+                    )
         else:
             if not stream_started and prefix_buffer:
                 remainder = "".join(prefix_buffer)
@@ -280,6 +310,7 @@ async def _handle_ws_chat(
         db.add(assistant_msg)
         db.commit()
         db.refresh(assistant_msg)
+        learning.note_exchange(user_text, full_text)
 
         await event_bus.send_to(
             websocket,
@@ -321,7 +352,7 @@ async def _handle_ws_chat(
                 payload={
                     "conversation_id": conv_id,
                     "provider": exc.provider,
-                    "message": exc.message,
+                    "message": friendly_ai_error(exc.message),
                 },
             ),
         )
@@ -416,7 +447,7 @@ async def _handle_ws_ambient(
             websocket,
             JarvisEvent(
                 type="chat.error",
-                payload={"message": exc.message},
+                payload={"message": friendly_ai_error(exc.message)},
             ),
         )
     finally:
@@ -512,9 +543,12 @@ async def lifespan(_app: FastAPI):
         and native_voice_service.is_supported()
     ):
         await native_voice_service.start()
+    if settings.brain_mind_enabled and "PYTEST_CURRENT_TEST" not in os.environ:
+        mind.start()
     try:
         yield
     finally:
+        await mind.stop()
         await native_voice_service.stop()
         telemetry_task.cancel()
         try:

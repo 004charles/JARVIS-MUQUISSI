@@ -29,7 +29,7 @@ async def test_desktop_service_autostart_launcher_and_notify(tmp_path: Path) -> 
     svc.set_autostart(True)
     assert svc.status()["autostart_enabled"] is True
     content = (tmp_path / "autostart" / "muquissi.desktop").read_text(encoding="utf-8")
-    assert "Name=Muquissi" in content
+    assert "Name=Arcanjo" in content
     assert "start-desktop.sh" in content
 
     svc.set_autostart(False)

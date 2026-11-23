@@ -245,7 +245,7 @@ export const apiClient = {
     requestJson<{ sent: boolean; title: string; message: string }>("/desktop/notify", {
       method: "POST",
       body: JSON.stringify({
-        title: "Muquissi Desktop",
+        title: "Arcanjo Desktop",
         message: "Notificações nativas do Ubuntu operacionais.",
         urgency: "normal",
       }),

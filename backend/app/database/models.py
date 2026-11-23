@@ -181,3 +181,7 @@ class AgentRunEntry(Base):
     summary: Mapped[str] = mapped_column(Text, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+# O Céu (knowledge base) tables share the same metadata
+from app.ceu import models as _ceu_models  # noqa: E402,F401

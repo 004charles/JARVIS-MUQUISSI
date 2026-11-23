@@ -39,7 +39,10 @@ class OpenApplicationTool(JarvisTool):
     """Open an allowlisted desktop application safely without a shell."""
 
     name = "open_application"
-    description = "Abrir uma aplicação autorizada (ex: vscode, terminal, files, firefox, chrome, calculator)."
+    description = (
+        "Abrir uma aplicação pelo nome (ex: vscode, terminal, firefox, spotify, calculadora). "
+        "Com acesso total abre qualquer aplicação instalada."
+    )
     parameters_hint = '{"app": "nome-da-aplicacao"}'
     permission_level = PermissionLevel.SAFE
 
@@ -57,6 +60,22 @@ class OpenApplicationTool(JarvisTool):
             return ToolResult(success=False, error=exc.reason)
 
         resolved_bin = next((shutil.which(cmd) for cmd in candidates if shutil.which(cmd)), None)
+        if not resolved_bin and self._policy.full_access:
+            from app.tools.computer_tools import find_desktop_entry, has_graphical_session
+
+            app_id = find_desktop_entry(raw_app)
+            if app_id and shutil.which("gtk-launch"):
+                if not has_graphical_session():
+                    return ToolResult(success=False, error="Sessão gráfica não detetada neste processo.")
+                subprocess.Popen(
+                    ["gtk-launch", app_id],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    start_new_session=True,
+                )
+                return ToolResult(
+                    success=True, output={"app": raw_app, "desktop_id": app_id, "launched": True}
+                )
         if not resolved_bin:
             return ToolResult(
                 success=False,

@@ -28,7 +28,7 @@ cp .env.example .env
 cd backend
 source .venv/bin/activate
 alembic upgrade head
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8010
 ```
 
 ### 3. Frontend

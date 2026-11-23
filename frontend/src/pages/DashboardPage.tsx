@@ -6,7 +6,10 @@ import { ApprovalBanner } from "../components/ApprovalBanner";
 import { BackdropCanvas, type BackdropTheme } from "../components/BackdropCanvas";
 import { ConversationsPanel } from "../components/ConversationsPanel";
 import { InteractionDock } from "../components/InteractionDock";
-import { JarvisCoreWheel } from "../components/JarvisCoreWheel";
+import { CeuPanel } from "../components/CeuPanel";
+import { ArchangelCore } from "../components/ArchangelCore";
+import { ArchangelScene } from "../components/ArchangelScene";
+import { ArchangelVideo } from "../components/ArchangelVideo";
 import { MemoryPanel } from "../components/MemoryPanel";
 import { NotificationsPopover } from "../components/NotificationsPopover";
 import { ProductivityPanel } from "../components/ProductivityPanel";
@@ -52,10 +55,19 @@ const THEME_OPTIONS: Array<{ id: BackdropTheme; label: string }> = [
 
 export function DashboardPage() {
   const [theme, setTheme] = useState<BackdropTheme>(() => {
-    const saved = localStorage.getItem("muquissi_theme") as BackdropTheme | null;
+    const saved = localStorage.getItem("arcanjo_theme") as BackdropTheme | null;
     return saved && ["clouds", "galaxy", "aurora"].includes(saved) ? saved : "clouds";
   });
   const [autoCycleTheme, setAutoCycleTheme] = useState(false);
+  // Photoreal 3D Arcanjo (WebGL); falls back to the 2D canvas version if WebGL fails
+  // Avatar: the reference video brought to life (default) · ?3d=1 WebGL scene · ?2d=1 canvas
+  const [avatarMode] = useState<"video" | "3d" | "2d">(() => {
+    const q = new URLSearchParams(window.location.search);
+    return q.has("3d") ? "3d" : q.has("2d") ? "2d" : "video";
+  });
+  const [scene3dFailed, setScene3dFailed] = useState(false);
+  const show3d = avatarMode === "3d" && !scene3dFailed;
+  const show2d = avatarMode === "2d" || (avatarMode === "3d" && scene3dFailed);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerTab, setDrawerTab] = useState<DrawerTab>("chat");
 
@@ -82,7 +94,7 @@ export function DashboardPage() {
   } = useSpeechQueue({
     voiceEnabled,
     ttsAvailable: Boolean(voiceStatus?.available),
-    voiceName: voiceStatus?.voice ?? "Muquissi-Grave",
+    voiceName: voiceStatus?.voice ?? "Muquissi-Mulher",
     onSpeakingStart: useCallback(() => {
       sendCommandRef.current({ type: "assistant.set_state", state: "speaking" });
     }, []),
@@ -98,6 +110,9 @@ export function DashboardPage() {
     connected,
     assistantState,
     faceMood,
+    music,
+    vision,
+    clearVision,
     systemUpdate,
     messages,
     latestReply,
@@ -174,7 +189,8 @@ export function DashboardPage() {
 
   const { micActive, transcribing, micLevel, micError, toggleMic, startMic } = useContinuousVoice({
     assistantState,
-    autoStartAllowed: Boolean(voiceStatus),
+    // A escuta nativa do Ubuntu é melhor (sem eco, sem separador aberto): o browser só serve de reserva.
+    autoStartAllowed: Boolean(voiceStatus) && !voiceStatus?.native_listening,
     onTranscript: handleVoiceTranscript,
     onStateHint: handleVoiceStateHint,
   });
@@ -189,7 +205,11 @@ export function DashboardPage() {
   useEffect(() => {
     const onFirstGesture = () => {
       void unlockAudio();
-      if (!micActive && localStorage.getItem("jarvis_browser_mic_disabled") !== "1") {
+      if (
+        !micActive &&
+        !voiceStatus?.native_listening &&
+        localStorage.getItem("jarvis_browser_mic_disabled") !== "1"
+      ) {
         startMic();
       }
     };
@@ -199,10 +219,10 @@ export function DashboardPage() {
       window.removeEventListener("pointerdown", onFirstGesture);
       window.removeEventListener("keydown", onFirstGesture);
     };
-  }, [micActive, startMic, unlockAudio]);
+  }, [micActive, startMic, unlockAudio, voiceStatus?.native_listening]);
 
   useEffect(() => {
-    localStorage.setItem("muquissi_theme", theme);
+    localStorage.setItem("arcanjo_theme", theme);
   }, [theme]);
 
   useEffect(() => {
@@ -273,6 +293,14 @@ export function DashboardPage() {
     setInput("");
   };
 
+  // O Céu: questions typed in the ask bar go through the same chat channel
+  const askArcanjo = (text: string) => {
+    void unlockAudio();
+    clearError();
+    appendLocalMessage("user", text);
+    sendCommand({ type: "chat.send", content: text, conversation_id: activeConversationId });
+  };
+
   const handleToggleListening = async () => {
     await unlockAudio();
     toggleMic();
@@ -336,7 +364,27 @@ export function DashboardPage() {
       }`}
     >
       {/* Dynamic Full-Screen Backdrop (Clouds / Galaxy / Aurora) */}
-      <BackdropCanvas theme={theme} />
+      {theme === "clouds" && avatarMode === "video" ? (
+        <ArchangelVideo
+          aside={Boolean(vision)}
+          state={assistantState}
+          mood={effectiveMood}
+          speechEnergy={Math.max(speechEnergy, streamPulse, micLevel)}
+          music={music}
+          onClick={() => void handleCoreClick()}
+        />
+      ) : theme === "clouds" && show3d ? (
+        <ArchangelScene
+          state={assistantState}
+          mood={effectiveMood}
+          speechEnergy={Math.max(speechEnergy, streamPulse, micLevel)}
+          music={music}
+          onClick={() => void handleCoreClick()}
+          onFail={() => setScene3dFailed(true)}
+        />
+      ) : (
+        <BackdropCanvas theme={theme} />
+      )}
 
       {/* Background Device Camera Feed for Hands-Free Vision */}
       <video ref={cameraVideoRef} playsInline muted className="hidden" />
@@ -349,7 +397,7 @@ export function DashboardPage() {
           title={
             micActive || (voiceStatus?.native_listening && voiceStatus?.native_signal_detected)
               ? "Escuta de sala ativa (clique para alternar)"
-              : "Ligar microfone para o Muquissi ouvir e opinar"
+              : "Ligar microfone para o Arcanjo ouvir e opinar"
           }
           className={`flex h-9 w-9 items-center justify-center rounded-full border backdrop-blur-md transition ${
             micActive || (voiceStatus?.native_listening && voiceStatus?.native_signal_detected)
@@ -401,7 +449,7 @@ export function DashboardPage() {
         <button
           type="button"
           onClick={() => setDrawerOpen((o) => !o)}
-          title="Abrir painéis do Muquissi"
+          title="Abrir painéis do Arcanjo"
           className={`flex h-9 w-9 items-center justify-center rounded-full border backdrop-blur-md transition ${
             isLight
               ? "border-sky-300/60 bg-white/70 text-sky-900 hover:bg-white"
@@ -412,15 +460,24 @@ export function DashboardPage() {
         </button>
       </div>
 
-      {/* Pure Center Stage: ONLY Backdrop + Muquissi in the Center */}
+      {/* Center stage: the Arcanjo above the clouds, as in the reference video */}
       <main className="relative z-10 flex min-h-screen flex-col items-center justify-center p-4">
-        <JarvisCoreWheel
+        <CeuPanel
+          messages={messages}
+          streamingText={streamingText}
+          assistantState={assistantState}
+          onAsk={askArcanjo}
+          vision={vision}
+          onCloseVision={clearVision}
+        />
+        {(theme !== "clouds" || show2d) && <ArchangelCore
           state={assistantState}
           mood={effectiveMood}
           speechEnergy={Math.max(speechEnergy, streamPulse, micLevel)}
-          theme={theme}
-          onCoreClick={() => void handleCoreClick()}
-        />
+          music={music}
+          size={Math.min(660, typeof window !== "undefined" ? Math.min(window.innerWidth - 32, window.innerHeight * 0.8) : 660)}
+          onClick={() => void handleCoreClick()}
+        />}
 
         {(activeToolLabel || activeAgentLabel || pendingApprovals.length > 0 || error || aiError || micError) && (
           <div className="fixed right-4 bottom-4 left-4 z-30 mx-auto max-w-2xl space-y-2">

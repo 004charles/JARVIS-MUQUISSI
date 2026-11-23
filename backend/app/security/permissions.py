@@ -68,6 +68,25 @@ _RESTRICTED_COMMAND_PATTERNS = (
     r"\bshutdown\b",
     r"\breboot\b",
 )
+# Em modo de acesso total estes padrões não bloqueiam: pedem confirmação ao Carlos.
+_DANGEROUS_COMMAND_PATTERNS = (
+    *_RESTRICTED_COMMAND_PATTERNS,
+    r"\bpkexec\b",
+    r"\brm\s",
+    r"\brmdir\b",
+    r"\bshred\b",
+    r"\bkill(?:all)?\b",
+    r"\bpkill\b",
+    r"\bpoweroff\b",
+    r"\bhalt\b",
+    r"\bsystemctl\s+(?:stop|disable|mask|restart|poweroff|reboot|suspend)\b",
+    r"\bapt(?:-get)?\s+(?:remove|purge|autoremove)\b",
+    r"\bsnap\s+remove\b",
+    r"\bgit\s+(?:push|reset\s+--hard|clean\s+-\w*f)",
+    r"\bdocker\s+(?:rm|rmi|system\s+prune|volume\s+rm)\b",
+    r"\bdrop\s+(?:table|database)\b",
+    r"\bcrontab\s+-r\b",
+)
 _SERVICE_NAME_RE = re.compile(r"^[a-zA-Z0-9_.@-]{1,64}$")
 
 
@@ -109,14 +128,27 @@ class SecurityPolicy:
             return True
         return False
 
+    @property
+    def full_access(self) -> bool:
+        """True when the Carlos granted Arcanjo unrestricted control of the computer."""
+        return bool(getattr(self.settings, "full_access", False))
+
+    def is_dangerous_command(self, command_text: str) -> bool:
+        """Detect destructive/privileged intent that always deserves a spoken confirmation."""
+        lowered = command_text.lower()
+        return any(re.search(p, lowered) for p in _DANGEROUS_COMMAND_PATTERNS)
+
     def validate_authorized_path(self, raw_path: str, allow_nonexistent: bool = False) -> Path:
         """Resolve a user/AI path and verify it stays inside authorized directories."""
         candidate_raw = Path(raw_path).expanduser()
-        if not candidate_raw.is_absolute() and self.allowed_directories:
-            candidate_raw = self.allowed_directories[0] / candidate_raw
+        if not candidate_raw.is_absolute():
+            base = Path.home() if self.full_access else (
+                self.allowed_directories[0] if self.allowed_directories else Path.cwd()
+            )
+            candidate_raw = base / candidate_raw
 
         resolved = candidate_raw.resolve()
-        if not any(
+        if not self.full_access and not any(
             resolved == root or resolved.is_relative_to(root)
             for root in self.allowed_directories
         ):
@@ -161,6 +193,8 @@ class SecurityPolicy:
     def resolve_allowed_app(self, app_name: str) -> List[str]:
         """Map a friendly application name to allowlisted Ubuntu binary candidates."""
         key = app_name.strip().lower()
+        if key not in ALLOWED_DESKTOP_APPS and self.full_access and key:
+            return [app_name.strip()]
         if key not in ALLOWED_DESKTOP_APPS:
             raise SecurityViolation(
                 f"Aplicação '{app_name}' não consta na lista de aplicações autorizadas.",

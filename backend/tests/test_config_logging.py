@@ -9,6 +9,7 @@ from app.security.permissions import PermissionLevel
 
 def test_settings_parses_lists_and_defaults() -> None:
     settings = Settings(
+        _env_file=None,
         cors_origins="http://localhost:5173, http://127.0.0.1:5173",
         allowed_directories="/tmp",
     )

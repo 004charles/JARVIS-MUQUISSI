@@ -58,7 +58,7 @@ async def search_web(
         response = await client.post(
             "https://html.duckduckgo.com/html/",
             data={"q": clean_query},
-            headers={"User-Agent": "Muquissi-Assistant/1.0"},
+            headers={"User-Agent": "Arcanjo-Assistant/1.0"},
         )
         if response.status_code >= 400:
             raise RuntimeError(f"Pesquisa web devolveu HTTP {response.status_code}")

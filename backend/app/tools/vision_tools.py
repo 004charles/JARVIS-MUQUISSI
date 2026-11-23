@@ -1,4 +1,4 @@
-"""Camera vision tool allowing Muquissi to look through the device camera."""
+"""Camera vision tool allowing Arcanjo to look through the device camera."""
 
 from __future__ import annotations
 
