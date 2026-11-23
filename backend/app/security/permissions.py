@@ -87,6 +87,32 @@ _DANGEROUS_COMMAND_PATTERNS = (
     r"\bdrop\s+(?:table|database)\b",
     r"\bcrontab\s+-r\b",
 )
+# Ways to hide a command from the patterns above (run it through another interpreter, decode it,
+# build it at run time): treated as dangerous too, so they always ask first.
+_INDIRECTION_PATTERNS = (
+    r"\beval\b",
+    r"\b(?:ba|z|da|k)?sh\s+-\w*c\b",
+    r"\b(?:python[\d.]*|perl|ruby|node|php)\s+-\w*[ce]\b",
+    r"\bbase64\s+(?:-d|--decode)\b",
+    r"\bxxd\s+-r\b",
+    r"\|\s*(?:ba|z|da)?sh\b",
+    r"\bsource\b|(?:^|[;&|]\s*)\.\s",
+    r"\$\(|`",
+    r"\bxargs\b",
+    r"\bfind\b.*\s-(?:delete|exec|execdir|ok)\b",
+    r"\bdd\b|\bmkfs|\btruncate\b|\bwipefs\b",
+    r"\bmv\s|\bchmod\b|\bchown\b|\bchattr\b",
+    r"(?:^|[^>])>\s*/(?:etc|boot|usr|bin|sbin|lib|var|dev)\b",
+)
+
+
+def normalize_command(text: str) -> str:
+    """Undo the tricks that slip past regexes: quotes and backslashes inside words (r'm', r\\m),
+    tabs/newlines instead of spaces, and letter case."""
+    t = re.sub(r"[\"'\\]", "", text.lower())
+    return re.sub(r"\s+", " ", t).strip()
+
+
 _SERVICE_NAME_RE = re.compile(r"^[a-zA-Z0-9_.@-]{1,64}$")
 
 
@@ -100,6 +126,7 @@ class PendingApproval:
     params: Dict[str, Any]
     description: str
     permission_level: PermissionLevel = PermissionLevel.CONFIRMATION_REQUIRED
+    tainted: bool = False  # untrusted text (camera, files, web) was read before this was requested
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     expires_at: datetime = field(
         default_factory=lambda: datetime.now(timezone.utc) + timedelta(minutes=10)
@@ -135,8 +162,8 @@ class SecurityPolicy:
 
     def is_dangerous_command(self, command_text: str) -> bool:
         """Detect destructive/privileged intent that always deserves a spoken confirmation."""
-        lowered = command_text.lower()
-        return any(re.search(p, lowered) for p in _DANGEROUS_COMMAND_PATTERNS)
+        norm = normalize_command(command_text)
+        return any(re.search(p, norm) for p in (*_DANGEROUS_COMMAND_PATTERNS, *_INDIRECTION_PATTERNS))
 
     def validate_authorized_path(self, raw_path: str, allow_nonexistent: bool = False) -> Path:
         """Resolve a user/AI path and verify it stays inside authorized directories."""

@@ -104,6 +104,7 @@ class ToolExecutionOutcome:
     result: ToolResult | None = None
     approval: PendingApproval | None = None
     message: str = ""
+    tainted: bool = False  # set by approve_pending: the conversation had read untrusted text
 
 
 class ToolRegistry:
@@ -233,7 +234,8 @@ class ToolRegistry:
         target = tool.describe_target(clean_params)
         serialized = json.dumps(clean_params, ensure_ascii=False)
         full_access = self.policy.full_access
-        dangerous = self.policy.is_dangerous_command(serialized)
+        raw_values = " ".join(v if isinstance(v, str) else json.dumps(v, ensure_ascii=False) for v in clean_params.values())
+        dangerous = self.policy.is_dangerous_command(raw_values)
 
         # Level 3 safety pre-check across parameter values
         try:
@@ -409,6 +411,9 @@ class ToolRegistry:
             params=approval.params,
             bypass_confirmation=True,
         )
+        from app.ai.agent_loop import _output_is_untrusted
+
+        outcome.tainted = approval.tainted or _output_is_untrusted(approval.tool_name, approval.params)
         await event_bus.set_state(AssistantState.IDLE, reason="tool_approved")
         return outcome
 

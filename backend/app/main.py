@@ -91,6 +91,8 @@ async def _handle_ws_chat(
     """Persist user message, stream AI reply over WebSocket, and persist assistant turn."""
     from app.security.guard import rate_limiter
 
+    turn_tainted = False  # untrusted text read this turn → no auto-memory
+
     client_key = f"ws:{websocket.client.host if websocket.client else 'local'}"
     allowed, limit_message = rate_limiter.check(client_key)
     if not allowed:
@@ -210,9 +212,16 @@ async def _handle_ws_chat(
                 # Fallback: treat as regular text if malformed
                 full_text = raw_tool_text.strip()
             else:
+                from app.ai.agent_loop import _output_is_untrusted
+                from app.brain.state import mind_state
+
+                vision_tainted = mind_state.vision_tainted()
                 outcome = await tool_registry.invoke(
-                    db=db, tool_name=parsed_call.tool, params=parsed_call.args
+                    db=db, tool_name=parsed_call.tool, params=parsed_call.args, force_confirmation=vision_tainted
                 )
+                if outcome.approval is not None:
+                    outcome.approval.tainted = vision_tainted
+                turn_tainted = vision_tainted or _output_is_untrusted(parsed_call.tool, parsed_call.args)
                 if outcome.status == "awaiting_confirmation" and outcome.approval is not None:
                     full_text = describe_pending_action(outcome.approval)
                 else:
@@ -242,7 +251,9 @@ async def _handle_ws_chat(
                         model_override=model_override,
                         manager=ai_manager,
                         registry=tool_registry,
+                        initial_tainted=turn_tainted,
                     )
+                    turn_tainted = turn.tainted
                     used_provider = turn.provider or used_provider
                     used_model = turn.model or used_model
                     full_text = turn.reply
@@ -310,7 +321,8 @@ async def _handle_ws_chat(
         db.add(assistant_msg)
         db.commit()
         db.refresh(assistant_msg)
-        learning.note_exchange(user_text, full_text)
+        if not turn_tainted:  # never learn "facts" from turns that read untrusted text
+            learning.note_exchange(user_text, full_text)
 
         await event_bus.send_to(
             websocket,

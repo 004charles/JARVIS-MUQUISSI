@@ -385,12 +385,13 @@ class AmbientConversationBrain:
             )
         return context
 
-    def _remember_turn(self, db: Session, conv_id: int | None, user_text: str, reply: str) -> None:
+    def _remember_turn(self, db: Session, conv_id: int | None, user_text: str, reply: str, tainted: bool = False) -> None:
         if conv_id is None:
             return
         db.add(Message(conversation_id=conv_id, role="assistant", content=reply))
         db.commit()
-        learning.note_exchange(user_text, reply)
+        if not tainted:  # never learn "facts" from turns that read untrusted text
+            learning.note_exchange(user_text, reply)
 
     async def _run_direct_reply(
         self,
@@ -425,7 +426,7 @@ class AmbientConversationBrain:
         reply_text = turn.reply
 
         if persist_user:
-            self._remember_turn(db, conv_id, user_text, reply_text)
+            self._remember_turn(db, conv_id, user_text, reply_text, tainted=turn.tainted)
         return reply_text, turn.provider, turn.model, conv_id
 
     async def _resolve_pending_confirmation(
@@ -458,10 +459,12 @@ class AmbientConversationBrain:
                     ),
                 )
             )
-            turn = await run_agent_turn(db=db, messages=context, **voice_ai_overrides())
+            turn = await run_agent_turn(
+                db=db, messages=context, initial_tainted=outcome.tainted, **voice_ai_overrides()
+            )
             self._pending_approval_id = turn.pending_approval.id if turn.pending_approval else None
             self._pending_set_at = time.monotonic()
-            self._remember_turn(db, conv_id, text, turn.reply)
+            self._remember_turn(db, conv_id, text, turn.reply, tainted=turn.tainted)
             return turn.reply, turn.provider, turn.model, conv_id
 
         await tool_registry.reject_pending(db, approval_id)

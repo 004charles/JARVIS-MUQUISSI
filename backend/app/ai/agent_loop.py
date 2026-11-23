@@ -79,6 +79,7 @@ class AgentTurnResult:
     reply: str
     provider: str = ""
     model: str = ""
+    tainted: bool = False  # untrusted text was read this turn (no side effects, no auto-memory)
     steps: List[dict[str, Any]] = field(default_factory=list)
     pending_approval: PendingApproval | None = None
 
@@ -143,8 +144,10 @@ def _unread_references(reply: str, steps: list[dict[str, Any]]) -> list[str]:
 
 def describe_pending_action(approval: PendingApproval) -> str:
     """Natural spoken confirmation question for a destructive action."""
-    # Long absolute paths are unbearable to hear: say just the last folder/file name.
-    target = re.sub(r"(?:/[^\s/'\"]+){2,}/([^\s/'\"]+)", r"\1", approval.target.strip())
+    # Say exactly what will run (never a shortened version that could hide the real target).
+    target = approval.target.strip()
+    if len(target) > 240:
+        target = target[:240] + "… (comando completo no ecrã)"
     if approval.tool_name == "run_command":
         return f"Antes de avançar: isto é sensível, vou executar «{target}». Confirmas?"
     return f"Isto mexe em «{target}». Queres mesmo que avance?"
@@ -158,6 +161,7 @@ async def run_agent_turn(
     max_steps: int = MAX_AGENT_STEPS,
     manager: Any = None,
     registry: Any = None,
+    initial_tainted: bool = False,
 ) -> AgentTurnResult:
     """Let the model chain tool calls until it produces a final natural-language answer."""
     manager = manager or ai_manager
@@ -178,10 +182,10 @@ async def run_agent_turn(
     from app.brain.state import mind_state
 
     # Text held up to the camera could be an injected instruction: gate side effects this turn.
-    tainted = mind_state.vision_tainted()
+    tainted = mind_state.vision_tainted() or initial_tainted
     names = choose_toolset(context)
     native_tools = registry.native_tool_specs(names) if hasattr(registry, "native_tool_specs") else None
-    result = AgentTurnResult(reply="")
+    result = AgentTurnResult(reply="", tainted=tainted)
 
     for step in range(max_steps + 1):
         reply, provider, model, _ = await manager.generate_chat(
@@ -257,7 +261,9 @@ async def run_agent_turn(
         logger.info("Agente passo %d: %s → %s", step + 1, parsed.tool, outcome.status)
         result.steps.append({"tool": parsed.tool, "args": parsed.args, "status": outcome.status})
 
+        result.tainted = tainted
         if outcome.status == "awaiting_confirmation" and outcome.approval is not None:
+            outcome.approval.tainted = tainted  # survives the "sim": the next step stays gated
             result.pending_approval = outcome.approval
             result.reply = describe_pending_action(outcome.approval)
             return result
