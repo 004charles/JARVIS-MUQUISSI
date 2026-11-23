@@ -44,8 +44,9 @@ _TRUSTED_OUTPUT_TOOLS = {
 # read-only/no-content commands (anchored allowlist; pipes, redirects of input, ; && etc. excluded).
 _TRUSTED_COMMAND_RE = re.compile(
     r"(?:"
-    r"ls(?:[ \t]+-[a-zA-Z]+)*"  # no paths: file names can carry injected text
-    r"|pwd"
+    # Only commands whose output cannot carry file names or other attacker-controlled text
+    # (no ls: a directory listing returns file names, which can hold injected instructions)
+    r"pwd"
     r"|date"
     r"|uptime(?:[ \t]+-p)?"
     r"|df(?:[ \t]+-h)?"
@@ -61,6 +62,8 @@ _SHELL_META = re.compile(r"[\n\r\x00;&|`$<()]")
 
 def _output_is_untrusted(tool: str, args: dict[str, Any]) -> bool:
     if tool == "run_command":
+        if set(args) - {"command"}:
+            return True  # cwd/env/etc. change what the command sees: never trusted
         cmd = str(args.get("command", "")).strip(" \t")
         if _SHELL_META.search(cmd):
             return True

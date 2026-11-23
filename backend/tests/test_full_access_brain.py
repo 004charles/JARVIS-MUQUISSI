@@ -265,3 +265,13 @@ async def test_scripture_is_never_quoted_from_memory(db_session, monkeypatch: py
     turn = await run_agent_turn(db_session, [ChatMessage(role="user", content="Quero adorar o anjo, diz-me o que a Bíblia diz")])
     assert "LÊ no Céu" in seen[1][-1].content  # he was told to read before answering
     assert turn.reply.endswith("«Olha, não faças isso!»")
+
+
+def test_directory_listings_and_cwd_are_never_trusted():
+    from app.ai.agent_loop import _output_is_untrusted
+
+    assert _output_is_untrusted("run_command", {"command": "ls"})
+    assert _output_is_untrusted("run_command", {"command": "ls -la"})
+    assert _output_is_untrusted("run_command", {"command": "pwd", "cwd": "/tmp/attacker"})
+    assert not _output_is_untrusted("run_command", {"command": "pwd"})
+    assert not _output_is_untrusted("run_command", {"command": "df -h"})
